@@ -147,11 +147,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Validation schema for deposit verification
+  const depositVerifySchema = z.object({
+    reference: z.string().min(1),
+    amount: z.number().positive().int(),
+  });
+
   // Paystack webhook for deposit verification
   app.post("/api/deposits/verify", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { reference, amount } = req.body;
+      
+      // Validate request body
+      const validation = depositVerifySchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ message: "Invalid request data" });
+      }
+      
+      const { reference, amount } = validation.data;
 
       // Verify payment with Paystack before processing
       const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
