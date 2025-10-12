@@ -237,6 +237,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/admin/dashboard/products/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const productId = req.params.id;
+      await storage.deleteProduct(productId);
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
   app.get("/api/admin/users", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
@@ -254,6 +265,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (typeof newAdminStatus !== "boolean") {
         return res.status(400).json({ message: "isAdmin must be a boolean" });
+      }
+
+      // Protected admin email - cannot be removed from admin position
+      const PROTECTED_ADMIN_EMAIL = "ighanghangodspower@gmail.com";
+      const targetUser = await storage.getUser(userId);
+      
+      if (targetUser?.email === PROTECTED_ADMIN_EMAIL && newAdminStatus === false) {
+        return res.status(403).json({ 
+          message: "This admin account is protected and cannot be removed from admin position" 
+        });
       }
 
       const user = await storage.updateUserAdminStatus(userId, newAdminStatus);

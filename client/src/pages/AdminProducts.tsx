@@ -4,19 +4,150 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
-import { Edit } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Edit, Trash2 } from "lucide-react";
 import type { Product } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export default function AdminProducts() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
+  const { toast } = useToast();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: "",
+    price: "",
+    category: "",
+    accountUsername: "",
+    accountPassword: "",
+    accountEmail: "",
+    additionalInfo: "",
+  });
 
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/admin/all-products"],
     enabled: isAuthenticated && user?.isAdmin === true,
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      await apiRequest("DELETE", `/api/admin/dashboard/products/${productId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Product deleted",
+        description: "The product has been deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete product",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (productToDelete) {
+      deleteMutation.mutate(productToDelete.id);
+    }
+  };
+
+  const editMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PATCH", `/api/admin/dashboard/products/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Product updated",
+        description: "The product has been updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      setEditDialogOpen(false);
+      setProductToEdit(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update product",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditClick = (product: Product) => {
+    setProductToEdit(product);
+    setEditFormData({
+      title: product.title,
+      description: product.description,
+      price: product.price.toString(),
+      category: product.category,
+      accountUsername: product.accountUsername,
+      accountPassword: product.accountPassword,
+      accountEmail: product.accountEmail || "",
+      additionalInfo: product.additionalInfo || "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!productToEdit) return;
+
+    const updateData = {
+      title: editFormData.title,
+      description: editFormData.description,
+      price: parseInt(editFormData.price),
+      category: editFormData.category,
+      accountUsername: editFormData.accountUsername,
+      accountPassword: editFormData.accountPassword,
+      accountEmail: editFormData.accountEmail || undefined,
+      additionalInfo: editFormData.additionalInfo || undefined,
+    };
+
+    editMutation.mutate({ id: productToEdit.id, data: updateData });
+  };
 
   useEffect(() => {
     if (!authLoading && (!isAuthenticated || !user?.isAdmin)) {
@@ -74,9 +205,24 @@ export default function AdminProducts() {
                             </Badge>
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleEditClick(product)}
+                            data-testid={`button-edit-${product.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDeleteClick(product)}
+                            data-testid={`button-delete-${product.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -112,6 +258,139 @@ export default function AdminProducts() {
           </main>
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent data-testid="dialog-delete-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{productToDelete?.title}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              disabled={deleteMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-edit-product">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <DialogDescription>
+              Update the product details below
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={editFormData.title}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                required
+                data-testid="input-edit-title"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                required
+                data-testid="input-edit-description"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-price">Price (₦)</Label>
+                <Input
+                  id="edit-price"
+                  type="number"
+                  value={editFormData.price}
+                  onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
+                  required
+                  data-testid="input-edit-price"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <Input
+                  id="edit-category"
+                  value={editFormData.category}
+                  onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
+                  required
+                  data-testid="input-edit-category"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-username">Account Username</Label>
+              <Input
+                id="edit-username"
+                value={editFormData.accountUsername}
+                onChange={(e) => setEditFormData({ ...editFormData, accountUsername: e.target.value })}
+                required
+                data-testid="input-edit-username"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-password">Account Password</Label>
+              <Input
+                id="edit-password"
+                value={editFormData.accountPassword}
+                onChange={(e) => setEditFormData({ ...editFormData, accountPassword: e.target.value })}
+                required
+                data-testid="input-edit-password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Account Email (Optional)</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editFormData.accountEmail}
+                onChange={(e) => setEditFormData({ ...editFormData, accountEmail: e.target.value })}
+                data-testid="input-edit-email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-info">Additional Info (Optional)</Label>
+              <Textarea
+                id="edit-info"
+                value={editFormData.additionalInfo}
+                onChange={(e) => setEditFormData({ ...editFormData, additionalInfo: e.target.value })}
+                data-testid="input-edit-info"
+              />
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setEditDialogOpen(false)}
+                data-testid="button-cancel-edit"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={editMutation.isPending}
+                data-testid="button-save-edit"
+              >
+                {editMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

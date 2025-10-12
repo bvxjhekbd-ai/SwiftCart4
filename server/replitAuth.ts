@@ -66,7 +66,8 @@ async function upsertUser(claims: any) {
     profileImageUrl: claims["profile_image_url"],
   });
   
-  // Set admin status if email is in admin list
+  // Always ensure protected admin emails maintain admin status
+  // This protects against manual database changes or other edge cases
   if (isAdmin && !user.isAdmin) {
     await storage.updateUserAdminStatus(user.id, true);
   }

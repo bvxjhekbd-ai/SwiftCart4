@@ -31,6 +31,7 @@ export interface IStorage {
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product>;
   updateProductStatus(id: string, status: string): Promise<void>;
+  deleteProduct(id: string): Promise<void>;
   getProductStats(): Promise<{ total: number; available: number; sold: number }>;
 
   // Purchase operations
@@ -147,6 +148,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateProductStatus(id: string, status: string): Promise<void> {
     await db.update(products).set({ status }).where(eq(products.id, id));
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    await db.delete(products).where(eq(products.id, id));
   }
 
   async getProductStats(): Promise<{ total: number; available: number; sold: number }> {
