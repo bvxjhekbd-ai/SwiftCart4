@@ -55,13 +55,21 @@ function updateUserSession(
 }
 
 async function upsertUser(claims: any) {
-  await storage.upsertUser({
+  const ADMIN_EMAILS = ["ighanghangodspower@gmail.com"];
+  const isAdmin = ADMIN_EMAILS.includes(claims["email"]);
+  
+  const user = await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
   });
+  
+  // Set admin status if email is in admin list
+  if (isAdmin && !user.isAdmin) {
+    await storage.updateUserAdminStatus(user.id, true);
+  }
 }
 
 export async function setupAuth(app: Express) {

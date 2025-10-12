@@ -5,12 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownCircle, ArrowUpCircle, Calendar } from "lucide-react";
+import type { Transaction } from "@shared/schema";
 
 export default function TransactionHistory() {
   const { isLoading: authLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
-  const { data: transactions, isLoading } = useQuery({
+  const { data: transactions, isLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions"],
     enabled: isAuthenticated,
   });
@@ -39,7 +40,7 @@ export default function TransactionHistory() {
         <p className="text-muted-foreground">View all deposits and purchases</p>
       </div>
 
-      {!transactions || (transactions as any[]).length === 0 ? (
+      {!transactions || transactions.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">No transactions yet</p>
@@ -47,7 +48,7 @@ export default function TransactionHistory() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {(transactions as any[]).map((transaction: any) => (
+          {transactions.map((transaction) => (
             <Card key={transaction.id} data-testid={`transaction-${transaction.id}`}>
               <CardContent className="flex items-center justify-between gap-4 py-4">
                 <div className="flex items-center gap-4">
@@ -64,7 +65,7 @@ export default function TransactionHistory() {
                     <p className="font-semibold capitalize">{transaction.type}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      {new Date(transaction.createdAt).toLocaleString()}
+                      {transaction.createdAt ? new Date(transaction.createdAt).toLocaleString() : 'N/A'}
                     </div>
                   </div>
                 </div>

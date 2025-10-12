@@ -7,12 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Calendar } from "lucide-react";
 import { Link } from "wouter";
+import type { Purchase, Product } from "@shared/schema";
+
+type PurchaseWithProduct = Purchase & { product: Product };
 
 export default function PurchaseHistory() {
   const { isLoading: authLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
-  const { data: purchases, isLoading } = useQuery({
+  const { data: purchases, isLoading } = useQuery<PurchaseWithProduct[]>({
     queryKey: ["/api/purchases"],
     enabled: isAuthenticated,
   });
@@ -41,7 +44,7 @@ export default function PurchaseHistory() {
         <p className="text-muted-foreground">View all your purchased accounts</p>
       </div>
 
-      {!purchases || (purchases as any[]).length === 0 ? (
+      {!purchases || purchases.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">No purchases yet</p>
@@ -52,7 +55,7 @@ export default function PurchaseHistory() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {(purchases as any[]).map((purchase: any) => (
+          {purchases.map((purchase) => (
             <Card key={purchase.id} data-testid={`purchase-${purchase.id}`}>
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
@@ -61,7 +64,7 @@ export default function PurchaseHistory() {
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {new Date(purchase.purchasedAt).toLocaleDateString()}
+                        {purchase.purchasedAt ? new Date(purchase.purchasedAt).toLocaleDateString() : 'N/A'}
                       </div>
                       <Badge variant="secondary">{purchase.product.category}</Badge>
                     </div>
