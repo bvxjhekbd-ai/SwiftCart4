@@ -13,11 +13,11 @@ export default function AdminDashboard() {
 
   const { data: stats } = useQuery<{ total: number; available: number; sold: number }>({
     queryKey: ["/api/admin/stats"],
-    enabled: isAuthenticated && (user as any)?.isAdmin,
+    enabled: isAuthenticated && user?.isAdmin === true,
   });
 
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || !(user as any)?.isAdmin)) {
+    if (!authLoading && (!isAuthenticated || !user?.isAdmin)) {
       window.location.href = "/";
     }
   }, [isAuthenticated, authLoading, user]);
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
 
-  if (!isAuthenticated || !(user as any)?.isAdmin) {
+  if (!isAuthenticated || !user?.isAdmin) {
     return null;
   }
   const style = {

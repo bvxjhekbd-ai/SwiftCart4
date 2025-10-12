@@ -54,7 +54,7 @@ export default function Home() {
   });
 
   const handlePurchase = (productId: string, price: number) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       toast({
         title: "Please Login",
         description: "You need to login to make a purchase",
@@ -66,7 +66,7 @@ export default function Home() {
       return;
     }
 
-    const walletBalance = (user as any)?.walletBalance || 0;
+    const walletBalance = user.walletBalance || 0;
     if (walletBalance < price) {
       toast({
         title: "Insufficient Balance",

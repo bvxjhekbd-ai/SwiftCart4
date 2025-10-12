@@ -61,7 +61,7 @@ export default function Deposit() {
       // Initialize Paystack popup
       const handler = (window as any).PaystackPop.setup({
         key: paystackPublicKey,
-        email: (user as any)?.email || "user@example.com",
+        email: user?.email || "user@example.com",
         amount: paymentAmount * 100, // Paystack expects amount in kobo
         ref: reference,
         onClose: function() {
@@ -153,7 +153,7 @@ export default function Deposit() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold" data-testid="text-wallet-balance">
-              ₦{(user as any)?.walletBalance?.toLocaleString() || "0"}
+              ₦{user?.walletBalance?.toLocaleString() || "0"}
             </p>
           </CardContent>
         </Card>
