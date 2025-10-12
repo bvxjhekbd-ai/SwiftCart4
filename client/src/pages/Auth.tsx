@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Store } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { queryClient } from "@/lib/queryClient";
 
 export default function Auth() {
   const [, setLocation] = useLocation();
@@ -36,11 +37,19 @@ export default function Auth() {
       if (error) throw error;
 
       if (data.session) {
+        // Invalidate and refetch user data immediately
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+        
         toast({
           title: "Welcome back!",
           description: "You have successfully signed in",
         });
-        setLocation("/");
+        
+        // Small delay to ensure auth state is updated
+        setTimeout(() => {
+          setLocation("/");
+        }, 100);
       }
     } catch (error: any) {
       toast({
@@ -82,11 +91,19 @@ export default function Auth() {
       if (error) throw error;
 
       if (data.session) {
+        // Invalidate and refetch user data immediately
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+        
         toast({
           title: "Account created!",
           description: "You have successfully signed up",
         });
-        setLocation("/");
+        
+        // Small delay to ensure auth state is updated
+        setTimeout(() => {
+          setLocation("/");
+        }, 100);
       } else {
         toast({
           title: "Check your email",
