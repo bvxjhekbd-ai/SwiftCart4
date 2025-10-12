@@ -6,12 +6,14 @@ import { CategoryFilter } from "@/components/CategoryFilter";
 import { ProductCard } from "@/components/ProductCard";
 import { TrustSection } from "@/components/TrustSection";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/hooks/useCart";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const { addToCart, isInCart } = useCart();
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["/api/products"],
@@ -79,6 +81,21 @@ export default function Home() {
     purchaseMutation.mutate(productId);
   };
 
+  const handleAddToCart = (product: any) => {
+    addToCart({
+      productId: product.id,
+      title: product.title,
+      price: product.price,
+      category: product.category,
+      image: product.images?.[0] || "",
+    });
+    
+    toast({
+      title: "Added to Cart",
+      description: `${product.title} added to cart`,
+    });
+  };
+
   return (
     <div className="min-h-screen">
       <Header onPurchase={handlePurchase} />
@@ -111,6 +128,8 @@ export default function Home() {
                 {...product}
                 onPurchase={() => handlePurchase(product.id, product.price)}
                 isPurchasing={purchaseMutation.isPending}
+                onAddToCart={() => handleAddToCart(product)}
+                isInCart={isInCart(product.id)}
               />
             ))}
           </div>

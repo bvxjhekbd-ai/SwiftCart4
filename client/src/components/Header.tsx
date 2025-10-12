@@ -2,6 +2,7 @@ import { Search, Store, Wallet, History, ShoppingBag, LogOut, Shield } from "luc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "./ThemeToggle";
+import { CartSheet } from "./CartSheet";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -51,6 +52,8 @@ export function Header({ onPurchase }: HeaderProps) {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          
+          {isAuthenticated && <CartSheet />}
 
           {isAuthenticated ? (
             <>
@@ -58,7 +61,7 @@ export function Header({ onPurchase }: HeaderProps) {
                 <Button variant="outline" className="gap-2" data-testid="button-wallet">
                   <Wallet className="h-4 w-4" />
                   <span className="hidden sm:inline">
-                    ₦{((user as any)?.walletBalance || 0).toLocaleString()}
+                    ₦{(user?.walletBalance || 0).toLocaleString()}
                   </span>
                 </Button>
               </Link>
@@ -70,7 +73,7 @@ export function Header({ onPurchase }: HeaderProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {(user as any)?.isAdmin && (
+                  {user?.isAdmin && (
                     <>
                       <Link href="/admin">
                         <DropdownMenuItem data-testid="menu-item-admin">

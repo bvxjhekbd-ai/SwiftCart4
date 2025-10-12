@@ -1,7 +1,7 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Eye } from "lucide-react";
+import { ShoppingCart, Eye, Plus, Check } from "lucide-react";
 
 interface ProductCardProps {
   id: string;
@@ -12,9 +12,12 @@ interface ProductCardProps {
   status?: string;
   onPurchase?: () => void;
   isPurchasing?: boolean;
+  onAddToCart?: () => void;
+  isInCart?: boolean;
 }
 
 export function ProductCard({
+  id,
   title,
   price,
   images,
@@ -22,6 +25,8 @@ export function ProductCard({
   status = "available",
   onPurchase,
   isPurchasing = false,
+  onAddToCart,
+  isInCart = false,
 }: ProductCardProps) {
   const image = images && images.length > 0 ? images[0] : "https://images.unsplash.com/photo-1611605632017-0f486d02b8b4?w=400&h=300&fit=crop";
 
@@ -53,13 +58,14 @@ export function ProductCard({
 
       <CardFooter className="flex gap-2 p-4 pt-0">
         <Button
-          variant="outline"
+          variant={isInCart ? "default" : "outline"}
           size="icon"
           className="shrink-0"
-          data-testid="button-quick-view"
-          disabled={status !== "available"}
+          data-testid={`button-add-to-cart-${id}`}
+          onClick={onAddToCart}
+          disabled={status !== "available" || isInCart}
         >
-          <Eye className="h-4 w-4" />
+          {isInCart ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
         <Button
           className="flex-1"

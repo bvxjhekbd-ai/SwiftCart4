@@ -51,6 +51,14 @@ export interface IStorage {
     purchase?: Purchase;
     newBalance?: number;
   }>;
+  processBulkPurchase(userId: string, productIds: string[]): Promise<{
+    success: boolean;
+    message?: string;
+    purchases?: Purchase[];
+    newBalance?: number;
+    successCount?: number;
+    failedProducts?: string[];
+  }>;
   processDeposit(userId: string, reference: string, amount: number): Promise<{
     success: boolean;
     message?: string;
@@ -286,6 +294,113 @@ export class DatabaseStorage implements IStorage {
         success: true,
         purchase,
         newBalance: updatedUser.walletBalance,
+      };
+    });
+  }
+
+  // Atomic bulk purchase operation
+  async processBulkPurchase(userId: string, productIds: string[]): Promise<{
+    success: boolean;
+    message?: string;
+    purchases?: Purchase[];
+    newBalance?: number;
+    successCount?: number;
+    failedProducts?: string[];
+  }> {
+    return await db.transaction(async (tx) => {
+      // Get user
+      const [user] = await tx.select().from(users).where(eq(users.id, userId));
+
+      if (!user) {
+        return { success: false, message: "User not found" };
+      }
+
+      // Get all products
+      const productsToFetch = await tx
+        .select()
+        .from(products)
+        .where(sql`${products.id} = ANY(${productIds})`);
+
+      if (productsToFetch.length === 0) {
+        return { success: false, message: "No valid products found" };
+      }
+
+      // Filter available products
+      const availableProducts = productsToFetch.filter((p) => p.status === "available");
+      
+      if (availableProducts.length === 0) {
+        return { success: false, message: "None of the selected products are available" };
+      }
+
+      // Calculate total price
+      const totalPrice = availableProducts.reduce((sum, p) => sum + p.price, 0);
+
+      if (user.walletBalance < totalPrice) {
+        return { 
+          success: false, 
+          message: `Insufficient wallet balance. Required: ₦${totalPrice.toLocaleString()}, Available: ₦${user.walletBalance.toLocaleString()}` 
+        };
+      }
+
+      const purchaseRecords: Purchase[] = [];
+      const successfulProductIds: string[] = [];
+
+      // Process each product
+      for (const product of availableProducts) {
+        // Mark product as sold with conditional update
+        const updatedProducts = await tx
+          .update(products)
+          .set({ status: "sold" })
+          .where(and(eq(products.id, product.id), eq(products.status, "available")))
+          .returning();
+
+        if (updatedProducts.length > 0) {
+          // Create purchase record
+          const [purchase] = await tx
+            .insert(purchases)
+            .values({
+              userId,
+              productId: product.id,
+              amount: product.price,
+            })
+            .returning();
+
+          purchaseRecords.push(purchase);
+          successfulProductIds.push(product.id);
+
+          // Create transaction record
+          await tx.insert(transactions).values({
+            userId,
+            type: "purchase",
+            amount: -product.price,
+            status: "completed",
+            reference: purchase.id,
+            metadata: { productId: product.id, productTitle: product.title },
+          });
+        }
+      }
+
+      if (successfulProductIds.length === 0) {
+        return { success: false, message: "All products were already purchased by others" };
+      }
+
+      // Deduct total from wallet atomically
+      const totalDeduction = purchaseRecords.reduce((sum, p) => sum + p.amount, 0);
+      const [updatedUser] = await tx
+        .update(users)
+        .set({ walletBalance: sql`${users.walletBalance} - ${totalDeduction}` })
+        .where(eq(users.id, userId))
+        .returning();
+
+      // Identify failed products
+      const failedProductIds = productIds.filter((id) => !successfulProductIds.includes(id));
+
+      return {
+        success: true,
+        purchases: purchaseRecords,
+        newBalance: updatedUser.walletBalance,
+        successCount: successfulProductIds.length,
+        failedProducts: failedProductIds.length > 0 ? failedProductIds : undefined,
       };
     });
   }

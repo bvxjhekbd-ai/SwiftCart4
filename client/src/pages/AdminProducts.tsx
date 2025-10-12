@@ -15,11 +15,11 @@ export default function AdminProducts() {
 
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/admin/all-products"],
-    enabled: isAuthenticated && (user as any)?.isAdmin,
+    enabled: isAuthenticated && user?.isAdmin === true,
   });
 
   useEffect(() => {
-    if (!authLoading && (!isAuthenticated || !(user as any)?.isAdmin)) {
+    if (!authLoading && (!isAuthenticated || !user?.isAdmin)) {
       window.location.href = "/";
     }
   }, [isAuthenticated, authLoading, user]);
@@ -28,7 +28,7 @@ export default function AdminProducts() {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
 
-  if (!isAuthenticated || !(user as any)?.isAdmin) {
+  if (!isAuthenticated || !user?.isAdmin) {
     return null;
   }
 

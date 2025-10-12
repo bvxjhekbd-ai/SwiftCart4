@@ -16,6 +16,10 @@ const purchaseRequestSchema = z.object({
   productId: z.string().uuid("Invalid product ID format"),
 });
 
+const bulkPurchaseRequestSchema = z.object({
+  productIds: z.array(z.string().uuid("Invalid product ID format")).min(1, "At least one product required"),
+});
+
 const depositInitializeSchema = z.object({
   amount: z.number()
     .int("Amount must be a whole number")
@@ -255,6 +259,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating purchase:", error);
       res.status(500).json({ message: "Failed to complete purchase" });
+    }
+  });
+
+  // Bulk purchase route (for cart checkout)
+  app.post("/api/purchases/bulk", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Validate request
+      const validation = bulkPurchaseRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid bulk purchase request", 
+          errors: validation.error.errors 
+        });
+      }
+
+      const { productIds } = validation.data;
+
+      // Process bulk purchase atomically
+      const result = await storage.processBulkPurchase(userId, productIds);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.message });
+      }
+
+      res.status(201).json({
+        purchases: result.purchases,
+        newBalance: result.newBalance,
+        successCount: result.successCount,
+        failedProducts: result.failedProducts,
+      });
+    } catch (error) {
+      console.error("Error creating bulk purchase:", error);
+      res.status(500).json({ message: "Failed to complete bulk purchase" });
     }
   });
 

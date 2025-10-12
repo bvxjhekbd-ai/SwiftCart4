@@ -42,6 +42,7 @@ export function ProductUploadForm() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/all-products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       // Reset form
       setFormData({
         title: "",
