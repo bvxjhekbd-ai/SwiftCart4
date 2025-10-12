@@ -1,4 +1,4 @@
-import { Home, Package, Users } from "lucide-react";
+import { Home, Package, Users, Wallet, ShoppingBag } from "lucide-react";
 import { Link } from "wouter";
 import {
   Sidebar,
@@ -15,6 +15,8 @@ const menuItems = [
   { title: "Dashboard", icon: Home, url: "/admin" },
   { title: "Manage Products", icon: Package, url: "/admin/products" },
   { title: "Manage Users", icon: Users, url: "/admin/users" },
+  { title: "All Deposits", icon: Wallet, url: "/admin/deposits" },
+  { title: "All Purchases", icon: ShoppingBag, url: "/admin/purchases" },
 ];
 
 export function AdminSidebar() {

@@ -13,7 +13,7 @@ import {
   type InsertTransaction,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -41,6 +41,8 @@ export interface IStorage {
   // Transaction operations
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getUserTransactions(userId: string): Promise<Transaction[]>;
+  getAllTransactions(): Promise<(Transaction & { user: User })[]>;
+  getAllPurchases(): Promise<(Purchase & { product: Product; user: User })[]>;
   updateTransactionStatus(id: string, status: string): Promise<void>;
   getPendingTransaction(userId: string, reference: string): Promise<Transaction | undefined>;
 
@@ -204,6 +206,34 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(transactions.createdAt));
   }
 
+  async getAllTransactions(): Promise<(Transaction & { user: User })[]> {
+    const results = await db
+      .select()
+      .from(transactions)
+      .leftJoin(users, eq(transactions.userId, users.id))
+      .orderBy(desc(transactions.createdAt));
+
+    return results.map((row) => ({
+      ...row.transactions,
+      user: row.users!,
+    }));
+  }
+
+  async getAllPurchases(): Promise<(Purchase & { product: Product; user: User })[]> {
+    const results = await db
+      .select()
+      .from(purchases)
+      .leftJoin(products, eq(purchases.productId, products.id))
+      .leftJoin(users, eq(purchases.userId, users.id))
+      .orderBy(desc(purchases.purchasedAt));
+
+    return results.map((row) => ({
+      ...row.purchases,
+      product: row.products!,
+      user: row.users!,
+    }));
+  }
+
   async updateTransactionStatus(id: string, status: string): Promise<void> {
     await db.update(transactions).set({ status }).where(eq(transactions.id, id));
   }
@@ -319,7 +349,7 @@ export class DatabaseStorage implements IStorage {
       const productsToFetch = await tx
         .select()
         .from(products)
-        .where(sql`${products.id} = ANY(${productIds})`);
+        .where(inArray(products.id, productIds));
 
       if (productsToFetch.length === 0) {
         return { success: false, message: "No valid products found" };

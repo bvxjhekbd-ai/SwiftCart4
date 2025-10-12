@@ -170,6 +170,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/dashboard/products", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = adminProductSchema.parse(req.body);
+
+      // Validate base64 images if provided
+      if (validatedData.images && validatedData.images.length > 0) {
+        for (const image of validatedData.images) {
+          if (image.startsWith('data:')) {
+            // It's a base64 image, validate it
+            const matches = image.match(/^data:([^;]+);base64,(.+)$/);
+            if (!matches) {
+              return res.status(400).json({ 
+                message: "Invalid base64 image format" 
+              });
+            }
+
+            const [, mimeType, base64Data] = matches;
+
+            // Validate MIME type
+            const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validMimeTypes.includes(mimeType)) {
+              return res.status(400).json({ 
+                message: `Invalid image type. Supported: JPEG, PNG, GIF, WebP. Got: ${mimeType}` 
+              });
+            }
+
+            // Validate size (max 5MB)
+            const sizeInBytes = Math.ceil((base64Data.length * 3) / 4);
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (sizeInBytes > maxSize) {
+              return res.status(400).json({ 
+                message: `Image size exceeds 5MB limit. Size: ${(sizeInBytes / 1024 / 1024).toFixed(2)}MB` 
+              });
+            }
+          }
+        }
+      }
+
       const product = await storage.createProduct(validatedData);
       res.status(201).json(product);
     } catch (error) {
@@ -226,6 +261,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user admin status:", error);
       res.status(500).json({ message: "Failed to update user admin status" });
+    }
+  });
+
+  app.get("/api/admin/all-deposits", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const allTransactions = await storage.getAllTransactions();
+      const deposits = allTransactions.filter((t) => t.type === "deposit");
+      res.json(deposits);
+    } catch (error) {
+      console.error("Error fetching all deposits:", error);
+      res.status(500).json({ message: "Failed to fetch deposits" });
+    }
+  });
+
+  app.get("/api/admin/all-purchases", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const allPurchases = await storage.getAllPurchases();
+      res.json(allPurchases);
+    } catch (error) {
+      console.error("Error fetching all purchases:", error);
+      res.status(500).json({ message: "Failed to fetch purchases" });
+    }
+  });
+
+  app.patch("/api/admin/transactions/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const transactionId = req.params.id;
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({ message: "Valid status is required" });
+      }
+
+      await storage.updateTransactionStatus(transactionId, status);
+      res.json({ message: "Transaction status updated successfully" });
+    } catch (error) {
+      console.error("Error updating transaction status:", error);
+      res.status(500).json({ message: "Failed to update transaction status" });
     }
   });
 

@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 export function ProductUploadForm() {
   const { toast } = useToast();
   const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -29,6 +30,27 @@ export function ProductUploadForm() {
     accountEmail: "",
     additionalInfo: "",
   });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImageFile(reader.result as string);
+      setImageUrl(""); // Clear URL if file is uploaded
+    };
+    reader.readAsDataURL(file);
+  };
 
   const createProductMutation = useMutation({
     mutationFn: async (productData: any) => {
@@ -55,6 +77,7 @@ export function ProductUploadForm() {
         additionalInfo: "",
       });
       setImageUrl("");
+      setImageFile(null);
     },
     onError: (error: Error) => {
       toast({
@@ -83,7 +106,7 @@ export function ProductUploadForm() {
       description: formData.description,
       price: parseInt(formData.price),
       category: formData.category,
-      images: imageUrl ? [imageUrl] : ["https://picsum.photos/400/300"],
+      images: imageFile ? [imageFile] : imageUrl ? [imageUrl] : ["https://picsum.photos/400/300"],
       accountUsername: formData.accountUsername,
       accountPassword: formData.accountPassword,
       accountEmail: formData.accountEmail || undefined,
@@ -102,13 +125,33 @@ export function ProductUploadForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL (Optional)</Label>
+            <Label htmlFor="imageFile">Upload Image</Label>
+            <Input
+              id="imageFile"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              data-testid="input-image-file"
+            />
+            {imageFile && (
+              <div className="mt-2">
+                <img src={imageFile} alt="Preview" className="h-32 w-32 rounded object-cover" />
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Max size: 5MB. Supported: JPG, PNG, GIF, WebP
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="imageUrl">Or Enter Image URL (Optional)</Label>
             <Input
               id="imageUrl"
               placeholder="https://example.com/image.jpg"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               data-testid="input-image-url"
+              disabled={!!imageFile}
             />
             <p className="text-xs text-muted-foreground">
               Leave empty to use default placeholder image

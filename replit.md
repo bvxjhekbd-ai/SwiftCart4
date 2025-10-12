@@ -4,12 +4,19 @@
 A full-featured e-commerce platform for buying and selling social media accounts. Built with React, Express, PostgreSQL, and Replit Auth.
 
 ## Key Features
-- **Authentication**: Replit Auth with Google, GitHub, X, Apple, and email/password support
+- **Authentication**: Replit Auth with Google, GitHub, X, Apple, and email/password support with auto-admin assignment
 - **Wallet System**: Users can deposit funds (₦100 - ₦1,000,000) via Paystack
 - **Product Management**: Buy and sell social media accounts with secure credential delivery
+- **Image Upload**: Admin can upload product images (base64, up to 5MB) or use URLs
+- **Cart & Bulk Checkout**: Add multiple products to cart and purchase in one transaction
 - **Purchase History**: View all purchased accounts with full login credentials
-- **Transaction History**: Track deposits and purchases
-- **Admin Endpoint**: Secret API for posting products
+- **Transaction History**: Track deposits and purchases with detailed status
+- **Admin Dashboard**: Comprehensive admin panel with:
+  - Product management (create, update, view credentials)
+  - User management (promote/demote admins)
+  - Deposits monitoring (view all deposits, approve/reject pending)
+  - Purchase monitoring (view all purchases with user and product details)
+  - Statistics overview
 
 ## Architecture
 ### Database Schema
@@ -40,11 +47,23 @@ A full-featured e-commerce platform for buying and selling social media accounts
 
 ### Protected Endpoints (Require Auth)
 - `GET /api/auth/user` - Get current user
-- `POST /api/purchases` - Purchase a product
+- `POST /api/purchases` - Purchase a single product
+- `POST /api/purchases/bulk` - Purchase multiple products (cart checkout)
 - `GET /api/purchases` - Get user's purchased products (with credentials)
 - `GET /api/transactions` - Get user's transaction history
 - `POST /api/deposits/initialize` - Initialize Paystack deposit
 - `POST /api/deposits/verify` - Verify Paystack payment
+
+### Admin Endpoints (Require Auth + Admin Role)
+- `GET /api/admin/stats` - Get product statistics
+- `GET /api/admin/all-products` - Get all products with credentials
+- `POST /api/admin/dashboard/products` - Create new product
+- `PATCH /api/admin/dashboard/products/:id` - Update product
+- `GET /api/admin/users` - Get all users
+- `PATCH /api/admin/users/:id/admin-status` - Promote/demote admin
+- `GET /api/admin/all-deposits` - View all user deposits
+- `GET /api/admin/all-purchases` - View all purchases with details
+- `PATCH /api/admin/transactions/:id/status` - Update transaction status
 
 ### Admin Endpoint
 - `POST /api/admin/products` - Create product (requires API key)
@@ -135,15 +154,23 @@ All endpoints now include comprehensive validation:
 - **Deposit verify**: Reference required, amount must be positive integer
 - **Admin products**: Full social media account validation (username, password, email format)
 
-## Recent Changes
+## Recent Changes (December 2024)
+- **Fixed critical bulk purchase bug**: Resolved database array literal error in cart checkout
+- **Fixed React warnings**: Removed nested anchor tags in Header component
+- **Added image upload**: Admins can now upload images directly (base64, 5MB limit) instead of only URLs
+- **Enhanced admin panel**: Added comprehensive monitoring for deposits and purchases
+  - Admin can view all deposits with user details
+  - Admin can approve/reject pending deposits
+  - Admin can view all purchases with buyer and product information
+  - Admin can manage other admins from the dashboard
+- **Improved type safety**: Replaced unsafe type assertions in PurchaseHistory and TransactionHistory
+- **Performance optimizations**: Added parallel query execution and efficient data loading
+
+## Previous Changes
 - **Fixed critical security bug**: Implemented server-side Paystack payment verification
 - **Added comprehensive validators**: All API endpoints now validate request data
 - **Fixed database setup**: Properly configured PostgreSQL with schema migration
 - **Added social media account validation**: Ensures all products have required credentials
-- **Enhanced error handling**: Clear error messages for validation failures
-- Implemented full authentication with Replit Auth
-- Added wallet-based payment system
-- Created deposit system with Paystack integration
-- Built purchase flow with instant credential delivery
-- Added transaction and purchase history tracking
-- Created secret admin endpoint for product posting
+- Implemented full authentication with Replit Auth with auto-admin assignment
+- Added wallet-based payment system with Paystack integration
+- Built purchase flow with instant credential delivery and cart functionality
