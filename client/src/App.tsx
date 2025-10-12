@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/Landing";
+import Auth from "@/pages/Auth";
 import Home from "@/pages/Home";
 import Deposit from "@/pages/Deposit";
 import PurchaseHistory from "@/pages/PurchaseHistory";
@@ -25,7 +26,10 @@ function Router() {
       {isLoading ? (
         <Route path="/" component={() => <div className="flex h-screen items-center justify-center">Loading...</div>} />
       ) : !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/auth" component={Auth} />
+        </>
       ) : (
         <>
           <Route path="/" component={Home} />

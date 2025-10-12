@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
+import { signOut } from "@/lib/supabase";
 
 interface HeaderProps {
   onPurchase?: (productId: string, price: number) => void;
@@ -103,18 +104,16 @@ export function Header({ onPurchase }: HeaderProps) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <a href="/api/logout" data-testid="menu-item-logout">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </a>
+                  <DropdownMenuItem onClick={signOut} data-testid="menu-item-logout">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
             <Button asChild data-testid="button-login">
-              <a href="/api/login">Login / Sign Up</a>
+              <a href="/auth">Login / Sign Up</a>
             </Button>
           )}
         </div>

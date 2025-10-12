@@ -16,7 +16,7 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button asChild data-testid="button-login">
-              <a href="/api/login">Login / Sign Up</a>
+              <a href="/auth">Login / Sign Up</a>
             </Button>
           </div>
         </div>
@@ -32,7 +32,7 @@ export default function Landing() {
             Join thousands of users buying and selling social media accounts
           </p>
           <Button size="lg" asChild data-testid="button-get-started">
-            <a href="/api/login">Get Started</a>
+            <a href="/auth">Get Started</a>
           </Button>
         </div>
       </section>

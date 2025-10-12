@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupSupabaseAuth, isAuthenticated } from "./supabaseAuth";
 import { z } from "zod";
 import { insertProductSchema, insertPurchaseSchema, insertTransactionSchema } from "@shared/schema";
 
@@ -60,7 +60,7 @@ const isAdmin = async (req: any, res: any, next: any) => {
   }
   
   try {
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     const user = await storage.getUser(userId);
     
     if (!user || !user.isAdmin) {
@@ -75,20 +75,8 @@ const isAdmin = async (req: any, res: any, next: any) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
-
-  // Auth routes
-  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Setup Supabase Auth routes
+  await setupSupabaseAuth(app);
 
   // Product routes
   app.get("/api/products", async (req, res) => {
@@ -326,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Purchase routes
   app.post("/api/purchases", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Validate request
       const validation = purchaseRequestSchema.safeParse(req.body);
@@ -359,7 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bulk purchase route (for cart checkout)
   app.post("/api/purchases/bulk", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Validate request
       const validation = bulkPurchaseRequestSchema.safeParse(req.body);
@@ -393,7 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/purchases", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const purchases = await storage.getUserPurchases(userId);
       
       // Include full credentials for purchased items
@@ -418,7 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Transaction/Deposit routes
   app.get("/api/transactions", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const transactions = await storage.getUserTransactions(userId);
       res.json(transactions);
     } catch (error) {
@@ -436,7 +424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Paystack webhook for deposit verification
   app.post("/api/deposits/verify", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Validate request body
       const validation = depositVerifySchema.safeParse(req.body);
@@ -504,7 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize deposit (generate Paystack reference)
   app.post("/api/deposits/initialize", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Validate request
       const validation = depositInitializeSchema.safeParse(req.body);
