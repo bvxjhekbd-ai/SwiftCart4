@@ -5,10 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
 import { insertProductSchema, insertPurchaseSchema, insertTransactionSchema } from "@shared/schema";
 
-// Secret API key for admin product posting - REQUIRED
-if (!process.env.ADMIN_API_KEY) {
-  throw new Error("ADMIN_API_KEY environment variable is required for security");
-}
+// Secret API key for admin product posting - Optional (legacy endpoint)
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
 
 // Validation Schemas for API endpoints
@@ -46,6 +43,9 @@ const adminProductSchema = insertProductSchema.merge(socialMediaAccountValidator
 
 // Middleware to verify admin API key (for legacy API endpoint)
 const verifyAdminKey = (req: any, res: any, next: any) => {
+  if (!ADMIN_API_KEY) {
+    return res.status(503).json({ message: "Admin API key not configured" });
+  }
   const apiKey = req.headers["x-api-key"];
   if (apiKey !== ADMIN_API_KEY) {
     return res.status(403).json({ message: "Forbidden: Invalid API key" });
