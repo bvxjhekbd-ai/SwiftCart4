@@ -37,8 +37,16 @@ export default function Deposit() {
 
       const { reference, amount: paymentAmount } = await response.json();
 
-      // TODO: Replace with actual Paystack public key
-      const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "pk_test_xxxxx";
+      const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+      
+      if (!paystackPublicKey) {
+        toast({
+          title: "Configuration Error",
+          description: "Payment system not configured. Please contact support.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Initialize Paystack popup
       const handler = (window as any).PaystackPop.setup({

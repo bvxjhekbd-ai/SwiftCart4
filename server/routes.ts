@@ -153,16 +153,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { reference, amount } = req.body;
 
-      // TODO: Implement server-side Paystack verification
-      // const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
-      // const verifyUrl = `https://api.paystack.co/transaction/verify/${reference}`;
-      // const response = await fetch(verifyUrl, {
-      //   headers: { Authorization: `Bearer ${paystackSecretKey}` }
-      // });
-      // const data = await response.json();
-      // if (!data.status || data.data.status !== 'success') {
-      //   return res.status(400).json({ message: "Payment verification failed" });
-      // }
+      // Verify payment with Paystack before processing
+      const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+      if (!paystackSecretKey) {
+        console.error("PAYSTACK_SECRET_KEY is not set");
+        return res.status(500).json({ message: "Payment system not configured" });
+      }
+
+      const verifyUrl = `https://api.paystack.co/transaction/verify/${reference}`;
+      const response = await fetch(verifyUrl, {
+        headers: { Authorization: `Bearer ${paystackSecretKey}` }
+      });
+      const data = await response.json();
+      
+      if (!data.status || data.data.status !== 'success') {
+        return res.status(400).json({ message: "Payment verification failed" });
+      }
+
+      // Verify amount matches (Paystack returns amount in kobo, so divide by 100)
+      const verifiedAmount = data.data.amount / 100;
+      if (verifiedAmount !== amount) {
+        return res.status(400).json({ message: "Payment amount mismatch" });
+      }
 
       // Process deposit atomically with idempotency check
       const result = await storage.processDeposit(userId, reference, amount);
