@@ -48,6 +48,16 @@ export default function Deposit() {
         return;
       }
 
+      // Check if Paystack script is loaded
+      if (!(window as any).PaystackPop) {
+        toast({
+          title: "Payment System Error",
+          description: "Paystack payment system is not loaded. Please refresh the page.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Initialize Paystack popup
       const handler = (window as any).PaystackPop.setup({
         key: paystackPublicKey,
@@ -208,8 +218,6 @@ export default function Deposit() {
           </Button>
         </CardContent>
       </Card>
-
-      <script src="https://js.paystack.co/v1/inline.js"></script>
     </div>
   );
 }
