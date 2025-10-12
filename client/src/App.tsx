@@ -4,15 +4,33 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { useAuth } from "@/hooks/useAuth";
+import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
+import Deposit from "@/pages/Deposit";
+import PurchaseHistory from "@/pages/PurchaseHistory";
+import TransactionHistory from "@/pages/TransactionHistory";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/admin" component={AdminDashboard} />
+      {isLoading ? (
+        <Route path="/" component={() => <div className="flex h-screen items-center justify-center">Loading...</div>} />
+      ) : !isAuthenticated ? (
+        <Route path="/" component={Landing} />
+      ) : (
+        <>
+          <Route path="/" component={Home} />
+          <Route path="/deposit" component={Deposit} />
+          <Route path="/purchases" component={PurchaseHistory} />
+          <Route path="/transactions" component={TransactionHistory} />
+          <Route path="/admin" component={AdminDashboard} />
+        </>
+      )}
       <Route component={NotFound} />
     </Switch>
   );

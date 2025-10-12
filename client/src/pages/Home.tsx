@@ -1,65 +1,87 @@
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { ProductCard } from "@/components/ProductCard";
 import { TrustSection } from "@/components/TrustSection";
-
-// todo: remove mock functionality
-const mockProducts = [
-  {
-    id: "1",
-    title: "Premium Instagram Account with 50k Real Followers",
-    price: 25000,
-    image: "https://images.unsplash.com/photo-1611605632017-0f486d02b8b4?w=400&h=300&fit=crop",
-    category: "Instagram",
-    verified: true,
-  },
-  {
-    id: "2",
-    title: "Twitter Account - Verified Blue Checkmark Included",
-    price: 150000,
-    image: "https://images.unsplash.com/photo-1611605698323-b1e99cfd37ea?w=400&h=300&fit=crop",
-    category: "Twitter",
-    verified: true,
-  },
-  {
-    id: "3",
-    title: "TikTok Account with 100k Followers - Active Engagement",
-    price: 45000,
-    image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=300&fit=crop",
-    category: "TikTok",
-    verified: false,
-  },
-  {
-    id: "4",
-    title: "YouTube Channel 20k Subscribers - Gaming Niche",
-    price: 85000,
-    image: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=400&h=300&fit=crop",
-    category: "YouTube",
-    verified: true,
-  },
-  {
-    id: "5",
-    title: "Facebook Business Page - 30k Likes",
-    price: 35000,
-    image: "https://images.unsplash.com/photo-1611162618479-ee3d24aaef0b?w=400&h=300&fit=crop",
-    category: "Facebook",
-    verified: true,
-  },
-  {
-    id: "6",
-    title: "LinkedIn Premium Account with 5k Connections",
-    price: 55000,
-    image: "https://images.unsplash.com/photo-1611944212129-29977ae1398c?w=400&h=300&fit=crop",
-    category: "LinkedIn",
-    verified: false,
-  },
-];
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 export default function Home() {
+  const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
+
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["/api/products"],
+  });
+
+  const purchaseMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await apiRequest("POST", "/api/purchases", { productId });
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Purchase Successful!",
+        description: `Account purchased. New balance: ₦${data.newBalance.toLocaleString()}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
+    },
+    onError: (error: Error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Please Login",
+          description: "You need to login to make a purchase",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Purchase Failed",
+        description: error.message.includes("Insufficient")
+          ? "Insufficient wallet balance. Please deposit funds."
+          : "Failed to complete purchase",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePurchase = (productId: string, price: number) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Please Login",
+        description: "You need to login to make a purchase",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+
+    const walletBalance = (user as any)?.walletBalance || 0;
+    if (walletBalance < price) {
+      toast({
+        title: "Insufficient Balance",
+        description: "Please deposit funds to your wallet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    purchaseMutation.mutate(productId);
+  };
+
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header onPurchase={handlePurchase} />
       <Hero />
       <CategoryFilter />
 
@@ -73,11 +95,26 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {mockProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <p className="text-muted-foreground">Loading products...</p>
+          </div>
+        ) : !products || (products as any[]).length === 0 ? (
+          <div className="flex justify-center py-12">
+            <p className="text-muted-foreground">No products available</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {(products as any[]).map((product: any) => (
+              <ProductCard
+                key={product.id}
+                {...product}
+                onPurchase={() => handlePurchase(product.id, product.price)}
+                isPurchasing={purchaseMutation.isPending}
+              />
+            ))}
+          </div>
+        )}
       </main>
 
       <TrustSection />

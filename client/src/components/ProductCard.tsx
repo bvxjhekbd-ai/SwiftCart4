@@ -7,18 +7,24 @@ interface ProductCardProps {
   id: string;
   title: string;
   price: number;
-  image: string;
+  images: string[];
   category: string;
-  verified?: boolean;
+  status?: string;
+  onPurchase?: () => void;
+  isPurchasing?: boolean;
 }
 
 export function ProductCard({
   title,
   price,
-  image,
+  images,
   category,
-  verified = false,
+  status = "available",
+  onPurchase,
+  isPurchasing = false,
 }: ProductCardProps) {
+  const image = images && images.length > 0 ? images[0] : "https://images.unsplash.com/photo-1611605632017-0f486d02b8b4?w=400&h=300&fit=crop";
+
   return (
     <Card className="group overflow-hidden hover-elevate active-elevate-2">
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -38,15 +44,10 @@ export function ProductCard({
         <h3 className="line-clamp-2 font-semibold" data-testid="text-product-title">
           {title}
         </h3>
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2">
           <span className="text-2xl font-bold tabular-nums" data-testid="text-price">
             ₦{price.toLocaleString()}
           </span>
-          {verified && (
-            <Badge variant="outline" className="text-xs" data-testid="badge-verified">
-              Verified
-            </Badge>
-          )}
         </div>
       </CardContent>
 
@@ -56,12 +57,18 @@ export function ProductCard({
           size="icon"
           className="shrink-0"
           data-testid="button-quick-view"
+          disabled={status !== "available"}
         >
           <Eye className="h-4 w-4" />
         </Button>
-        <Button className="flex-1" data-testid="button-add-to-cart">
+        <Button
+          className="flex-1"
+          data-testid="button-buy-now"
+          onClick={onPurchase}
+          disabled={status !== "available" || isPurchasing}
+        >
           <ShoppingCart className="mr-2 h-4 w-4" />
-          Add to Cart
+          {status !== "available" ? "Sold" : isPurchasing ? "Processing..." : "Buy Now"}
         </Button>
       </CardFooter>
     </Card>
