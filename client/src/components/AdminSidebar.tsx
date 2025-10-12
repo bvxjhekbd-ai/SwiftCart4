@@ -1,4 +1,5 @@
-import { Home, Package, ShoppingBag, Settings, BarChart } from "lucide-react";
+import { Home, Package, Users } from "lucide-react";
+import { Link } from "wouter";
 import {
   Sidebar,
   SidebarContent,
@@ -12,10 +13,8 @@ import {
 
 const menuItems = [
   { title: "Dashboard", icon: Home, url: "/admin" },
-  { title: "Products", icon: Package, url: "/admin/products" },
-  { title: "Orders", icon: ShoppingBag, url: "/admin/orders" },
-  { title: "Analytics", icon: BarChart, url: "/admin/analytics" },
-  { title: "Settings", icon: Settings, url: "/admin/settings" },
+  { title: "Manage Products", icon: Package, url: "/admin/products" },
+  { title: "Manage Users", icon: Users, url: "/admin/users" },
 ];
 
 export function AdminSidebar() {
@@ -29,10 +28,10 @@ export function AdminSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url} data-testid={`link-${item.title.toLowerCase()}`}>
+                    <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s/g, '-')}`}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

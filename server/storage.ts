@@ -21,13 +21,17 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   incrementUserBalance(userId: string, amount: number): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User>;
 
   // Product operations
   getAllProducts(): Promise<Product[]>;
   getProductById(id: string): Promise<Product | undefined>;
   getAvailableProducts(): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product>;
   updateProductStatus(id: string, status: string): Promise<void>;
+  getProductStats(): Promise<{ total: number; available: number; sold: number }>;
 
   // Purchase operations
   createPurchase(purchase: InsertPurchase): Promise<Purchase>;
@@ -86,6 +90,19 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ isAdmin })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
   // Product operations
   async getAllProducts(): Promise<Product[]> {
     return await db.select().from(products).orderBy(desc(products.createdAt));
@@ -109,8 +126,25 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
+  async updateProduct(id: string, productData: Partial<InsertProduct>): Promise<Product> {
+    const [product] = await db
+      .update(products)
+      .set(productData)
+      .where(eq(products.id, id))
+      .returning();
+    return product;
+  }
+
   async updateProductStatus(id: string, status: string): Promise<void> {
     await db.update(products).set({ status }).where(eq(products.id, id));
+  }
+
+  async getProductStats(): Promise<{ total: number; available: number; sold: number }> {
+    const allProducts = await db.select().from(products);
+    const total = allProducts.length;
+    const available = allProducts.filter((p) => p.status === "available").length;
+    const sold = allProducts.filter((p) => p.status === "sold").length;
+    return { total, available, sold };
   }
 
   // Purchase operations

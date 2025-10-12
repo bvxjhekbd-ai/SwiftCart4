@@ -40,13 +40,34 @@ const socialMediaAccountValidator = z.object({
 // Enhanced product schema with social media validation
 const adminProductSchema = insertProductSchema.merge(socialMediaAccountValidator);
 
-// Middleware to verify admin API key
+// Middleware to verify admin API key (for legacy API endpoint)
 const verifyAdminKey = (req: any, res: any, next: any) => {
   const apiKey = req.headers["x-api-key"];
   if (apiKey !== ADMIN_API_KEY) {
     return res.status(403).json({ message: "Forbidden: Invalid API key" });
   }
   next();
+};
+
+// Middleware to check if authenticated user is admin
+const isAdmin = async (req: any, res: any, next: any) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  try {
+    const userId = req.user.claims.sub;
+    const user = await storage.getUser(userId);
+    
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ message: "Forbidden: Admin access required" });
+    }
+    
+    next();
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    res.status(500).json({ message: "Failed to verify admin status" });
+  }
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -102,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Secret admin endpoint to post products
+  // Secret admin endpoint to post products (Legacy - for API key access)
   app.post("/api/admin/products", verifyAdminKey, async (req, res) => {
     try {
       // Validate product data including social media account credentials
@@ -118,6 +139,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error creating product:", error);
       res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  // Admin Dashboard Routes (Require authenticated admin user)
+  app.get("/api/admin/stats", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getProductStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      res.status(500).json({ message: "Failed to fetch statistics" });
+    }
+  });
+
+  app.get("/api/admin/all-products", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const products = await storage.getAllProducts();
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching all products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.post("/api/admin/dashboard/products", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const validatedData = adminProductSchema.parse(req.body);
+      const product = await storage.createProduct(validatedData);
+      res.status(201).json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid product data", 
+          errors: error.errors 
+        });
+      }
+      console.error("Error creating product:", error);
+      res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.patch("/api/admin/dashboard/products/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const productId = req.params.id;
+      const validatedData = adminProductSchema.partial().parse(req.body);
+      const product = await storage.updateProduct(productId, validatedData);
+      res.json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid product data", 
+          errors: error.errors 
+        });
+      }
+      console.error("Error updating product:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  app.get("/api/admin/users", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id/admin-status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const { isAdmin: newAdminStatus } = req.body;
+      
+      if (typeof newAdminStatus !== "boolean") {
+        return res.status(400).json({ message: "isAdmin must be a boolean" });
+      }
+
+      const user = await storage.updateUserAdminStatus(userId, newAdminStatus);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user admin status:", error);
+      res.status(500).json({ message: "Failed to update user admin status" });
     }
   });
 

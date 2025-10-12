@@ -3,37 +3,32 @@ import { AdminSidebar } from "@/components/AdminSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ProductUploadForm } from "@/components/ProductUploadForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, ShoppingBag, DollarSign, TrendingUp } from "lucide-react";
-
-// todo: remove mock functionality
-const stats = [
-  {
-    title: "Total Products",
-    value: "24",
-    icon: Package,
-    trend: "+12%",
-  },
-  {
-    title: "Total Orders",
-    value: "156",
-    icon: ShoppingBag,
-    trend: "+8%",
-  },
-  {
-    title: "Revenue",
-    value: "₦2,450,000",
-    icon: DollarSign,
-    trend: "+23%",
-  },
-  {
-    title: "Growth",
-    value: "+18%",
-    icon: TrendingUp,
-    trend: "This month",
-  },
-];
+import { Package, ShoppingBag, CheckCircle2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 export default function AdminDashboard() {
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
+
+  const { data: stats } = useQuery<{ total: number; available: number; sold: number }>({
+    queryKey: ["/api/admin/stats"],
+    enabled: isAuthenticated && (user as any)?.isAdmin,
+  });
+
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || !(user as any)?.isAdmin)) {
+      window.location.href = "/";
+    }
+  }, [isAuthenticated, authLoading, user]);
+
+  if (authLoading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
+
+  if (!isAuthenticated || !(user as any)?.isAdmin) {
+    return null;
+  }
   const style = {
     "--sidebar-width": "16rem",
     "--sidebar-width-icon": "3rem",
@@ -57,25 +52,57 @@ export default function AdminDashboard() {
               </p>
             </div>
 
-            <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              {stats.map((stat) => (
-                <Card key={stat.title}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      {stat.title}
-                    </CardTitle>
-                    <stat.icon className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold" data-testid={`stat-${stat.title.toLowerCase().replace(/\s/g, '-')}`}>
-                      {stat.value}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {stat.trend} from last month
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="mb-8 grid gap-6 md:grid-cols-3">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Total Accounts
+                  </CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="stat-total-accounts">
+                    {stats?.total || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    All accounts added
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Available
+                  </CardTitle>
+                  <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="stat-available">
+                    {stats?.available || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ready for sale
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Sold
+                  </CardTitle>
+                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="stat-sold">
+                    {stats?.sold || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Successfully sold
+                  </p>
+                </CardContent>
+              </Card>
             </div>
 
             <ProductUploadForm />

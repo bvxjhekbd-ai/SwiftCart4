@@ -11,90 +11,107 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, X } from "lucide-react";
+import { Upload } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export function ProductUploadForm() {
-  const [images, setImages] = useState<string[]>([]);
+  const { toast } = useToast();
+  const [imageUrl, setImageUrl] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     price: "",
     category: "",
+    accountUsername: "",
+    accountPassword: "",
+    accountEmail: "",
+    additionalInfo: "",
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const newImages = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      );
-      setImages([...images, ...newImages]);
-      console.log("Images uploaded", newImages);
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
-    console.log("Image removed", index);
-  };
+  const createProductMutation = useMutation({
+    mutationFn: async (productData: any) => {
+      const response = await apiRequest("POST", "/api/admin/dashboard/products", productData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Product Created",
+        description: "Account has been added successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-products"] });
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        price: "",
+        category: "",
+        accountUsername: "",
+        accountPassword: "",
+        accountEmail: "",
+        additionalInfo: "",
+      });
+      setImageUrl("");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create product",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Product submitted", { ...formData, images });
+    
+    if (!formData.title || !formData.description || !formData.price || !formData.category || 
+        !formData.accountUsername || !formData.accountPassword) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const productData = {
+      title: formData.title,
+      description: formData.description,
+      price: parseInt(formData.price),
+      category: formData.category,
+      images: imageUrl ? [imageUrl] : ["https://picsum.photos/400/300"],
+      accountUsername: formData.accountUsername,
+      accountPassword: formData.accountPassword,
+      accountEmail: formData.accountEmail || undefined,
+      additionalInfo: formData.additionalInfo || undefined,
+      status: "available",
+    };
+
+    createProductMutation.mutate(productData);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Upload New Product</CardTitle>
+        <CardTitle>Add New Account</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="images">Product Images</Label>
-            <div className="grid gap-4">
-              <div className="flex min-h-32 items-center justify-center rounded-lg border-2 border-dashed p-6">
-                <label className="flex cursor-pointer flex-col items-center gap-2">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Click to upload images
-                  </span>
-                  <input
-                    id="images"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleImageUpload}
-                    data-testid="input-image-upload"
-                  />
-                </label>
-              </div>
-
-              {images.length > 0 && (
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                  {images.map((image, index) => (
-                    <div key={index} className="group relative aspect-square">
-                      <img
-                        src={image}
-                        alt={`Upload ${index + 1}`}
-                        className="h-full w-full rounded-lg object-cover"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute right-2 top-2 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={() => removeImage(index)}
-                        data-testid={`button-remove-image-${index}`}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Label htmlFor="imageUrl">Image URL (Optional)</Label>
+            <Input
+              id="imageUrl"
+              placeholder="https://example.com/image.jpg"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              data-testid="input-image-url"
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave empty to use default placeholder image
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -167,8 +184,74 @@ export function ProductUploadForm() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" data-testid="button-submit-product">
-            Upload Product
+          <div className="space-y-4 rounded-lg border p-4">
+            <h3 className="font-semibold">Account Credentials</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="accountUsername">Username *</Label>
+              <Input
+                id="accountUsername"
+                placeholder="Account username"
+                value={formData.accountUsername}
+                onChange={(e) =>
+                  setFormData({ ...formData, accountUsername: e.target.value })
+                }
+                data-testid="input-account-username"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="accountPassword">Password *</Label>
+              <Input
+                id="accountPassword"
+                type="text"
+                placeholder="Account password"
+                value={formData.accountPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, accountPassword: e.target.value })
+                }
+                data-testid="input-account-password"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="accountEmail">Email (Optional)</Label>
+              <Input
+                id="accountEmail"
+                type="email"
+                placeholder="account@email.com"
+                value={formData.accountEmail}
+                onChange={(e) =>
+                  setFormData({ ...formData, accountEmail: e.target.value })
+                }
+                data-testid="input-account-email"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="additionalInfo">Additional Info (Optional)</Label>
+              <Textarea
+                id="additionalInfo"
+                placeholder="Recovery email, 2FA status, etc."
+                rows={3}
+                value={formData.additionalInfo}
+                onChange={(e) =>
+                  setFormData({ ...formData, additionalInfo: e.target.value })
+                }
+                data-testid="input-additional-info"
+              />
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            data-testid="button-submit-product"
+            disabled={createProductMutation.isPending}
+          >
+            {createProductMutation.isPending ? "Adding Account..." : "Add Account"}
           </Button>
         </form>
       </CardContent>

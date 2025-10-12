@@ -11,6 +11,8 @@ import Deposit from "@/pages/Deposit";
 import PurchaseHistory from "@/pages/PurchaseHistory";
 import TransactionHistory from "@/pages/TransactionHistory";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminProducts from "@/pages/AdminProducts";
+import AdminUsers from "@/pages/AdminUsers";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -29,6 +31,8 @@ function Router() {
           <Route path="/purchases" component={PurchaseHistory} />
           <Route path="/transactions" component={TransactionHistory} />
           <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin/products" component={AdminProducts} />
+          <Route path="/admin/users" component={AdminUsers} />
         </>
       )}
       <Route component={NotFound} />
