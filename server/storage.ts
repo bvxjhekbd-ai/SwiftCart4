@@ -38,6 +38,7 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getUserTransactions(userId: string): Promise<Transaction[]>;
   updateTransactionStatus(id: string, status: string): Promise<void>;
+  getPendingTransaction(userId: string, reference: string): Promise<Transaction | undefined>;
 
   // Atomic operations
   processPurchase(userId: string, productId: string): Promise<{
@@ -165,6 +166,20 @@ export class DatabaseStorage implements IStorage {
     await db.update(transactions).set({ status }).where(eq(transactions.id, id));
   }
 
+  async getPendingTransaction(userId: string, reference: string): Promise<Transaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.userId, userId),
+          eq(transactions.reference, reference),
+          eq(transactions.status, "pending")
+        )
+      );
+    return transaction;
+  }
+
   // Atomic purchase operation with proper transaction handling
   async processPurchase(userId: string, productId: string): Promise<{
     success: boolean;
@@ -242,13 +257,22 @@ export class DatabaseStorage implements IStorage {
     newBalance?: number;
   }> {
     return await db.transaction(async (tx) => {
-      // Check if reference already exists (idempotency)
+      // Check if a pending transaction exists for this user and reference
       const [existingTx] = await tx
         .select()
         .from(transactions)
         .where(and(eq(transactions.reference, reference), eq(transactions.userId, userId)));
 
-      if (existingTx && existingTx.status === "completed") {
+      // SECURITY: Reject if no transaction exists (prevents reference replay attacks)
+      if (!existingTx) {
+        return {
+          success: false,
+          message: "Invalid transaction reference",
+        };
+      }
+
+      // Check if already completed (idempotency)
+      if (existingTx.status === "completed") {
         return {
           success: false,
           message: "Deposit already processed",
@@ -268,24 +292,12 @@ export class DatabaseStorage implements IStorage {
         .where(eq(users.id, userId))
         .returning();
 
-      // Create or update transaction record
-      const [transaction] = existingTx
-        ? await tx
-            .update(transactions)
-            .set({ status: "completed" })
-            .where(eq(transactions.id, existingTx.id))
-            .returning()
-        : await tx
-            .insert(transactions)
-            .values({
-              userId,
-              type: "deposit",
-              amount,
-              status: "completed",
-              reference,
-              metadata: { method: "paystack" },
-            })
-            .returning();
+      // Update transaction to completed
+      const [transaction] = await tx
+        .update(transactions)
+        .set({ status: "completed" })
+        .where(eq(transactions.id, existingTx.id))
+        .returning();
 
       return {
         success: true,

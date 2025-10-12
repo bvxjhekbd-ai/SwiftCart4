@@ -209,6 +209,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { reference, amount } = validation.data;
 
+      // SECURITY: Verify that a pending transaction exists for THIS user with this reference
+      const pendingTransaction = await storage.getPendingTransaction(userId, reference);
+      if (!pendingTransaction) {
+        return res.status(400).json({ 
+          message: "Invalid transaction reference. Transaction not found or already completed." 
+        });
+      }
+
       // Verify payment with Paystack before processing
       const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
       if (!paystackSecretKey) {
