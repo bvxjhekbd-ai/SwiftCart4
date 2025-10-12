@@ -90,7 +90,57 @@ curl -X POST https://your-app.replit.app/api/admin/products \
 5. **Purchase** - Buy with wallet balance
 6. **View Credentials** - Access purchased account details in "My Purchases"
 
+## Admin Endpoint Details
+
+### POST /api/admin/products
+**Purpose**: Add new social media accounts for sale  
+**Authentication**: Requires `x-api-key` header with value from `ADMIN_API_KEY` environment variable
+
+**Required Fields** (All validated):
+- `title` (string): Product title
+- `description` (string): Product description
+- `price` (number): Price in Naira (integer)
+- `category` (string): Category (e.g., "instagram", "twitter", "tiktok", "facebook", "linkedin")
+- `images` (array): Array of image URLs
+- `accountUsername` (string, required): Social media account username
+- `accountPassword` (string, required): Social media account password
+- `accountEmail` (string, optional): Associated email for account
+- `additionalInfo` (string, optional): Recovery info or other details
+- `status` (string, default: "available"): Product status
+
+**Validation**: All social media credentials are validated - username and password are required, email must be valid format if provided.
+
+**Example Request**:
+```bash
+curl -X POST https://your-app.replit.app/api/admin/products \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_ADMIN_API_KEY" \
+  -d '{
+    "title": "Instagram Account - 10k Followers",
+    "description": "Verified account with active engagement",
+    "price": 15000,
+    "category": "instagram",
+    "images": ["https://example.com/image.jpg"],
+    "accountUsername": "username123",
+    "accountPassword": "securePassword123",
+    "accountEmail": "account@email.com",
+    "additionalInfo": "Recovery email: recovery@email.com"
+  }'
+```
+
+## API Validation
+All endpoints now include comprehensive validation:
+- **Purchase requests**: Product ID must be valid UUID format
+- **Deposit initialize**: Amount must be integer between ₦100 and ₦1,000,000
+- **Deposit verify**: Reference required, amount must be positive integer
+- **Admin products**: Full social media account validation (username, password, email format)
+
 ## Recent Changes
+- **Fixed critical security bug**: Implemented server-side Paystack payment verification
+- **Added comprehensive validators**: All API endpoints now validate request data
+- **Fixed database setup**: Properly configured PostgreSQL with schema migration
+- **Added social media account validation**: Ensures all products have required credentials
+- **Enhanced error handling**: Clear error messages for validation failures
 - Implemented full authentication with Replit Auth
 - Added wallet-based payment system
 - Created deposit system with Paystack integration

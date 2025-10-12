@@ -11,6 +11,35 @@ if (!process.env.ADMIN_API_KEY) {
 }
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
 
+// Validation Schemas for API endpoints
+const purchaseRequestSchema = z.object({
+  productId: z.string().uuid("Invalid product ID format"),
+});
+
+const depositInitializeSchema = z.object({
+  amount: z.number()
+    .int("Amount must be a whole number")
+    .min(100, "Minimum deposit is ₦100")
+    .max(1000000, "Maximum deposit is ₦1,000,000"),
+});
+
+const depositVerifySchema = z.object({
+  reference: z.string().min(1, "Reference is required"),
+  amount: z.number()
+    .int("Amount must be a whole number")
+    .positive("Amount must be positive"),
+});
+
+// Social media account validator
+const socialMediaAccountValidator = z.object({
+  accountUsername: z.string().min(1, "Account username is required"),
+  accountPassword: z.string().min(1, "Account password is required"),
+  accountEmail: z.string().email("Valid email is required").optional(),
+});
+
+// Enhanced product schema with social media validation
+const adminProductSchema = insertProductSchema.merge(socialMediaAccountValidator);
+
 // Middleware to verify admin API key
 const verifyAdminKey = (req: any, res: any, next: any) => {
   const apiKey = req.headers["x-api-key"];
@@ -76,12 +105,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Secret admin endpoint to post products
   app.post("/api/admin/products", verifyAdminKey, async (req, res) => {
     try {
-      const validatedData = insertProductSchema.parse(req.body);
+      // Validate product data including social media account credentials
+      const validatedData = adminProductSchema.parse(req.body);
       const product = await storage.createProduct(validatedData);
       res.status(201).json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
+        return res.status(400).json({ 
+          message: "Invalid product data", 
+          errors: error.errors 
+        });
       }
       console.error("Error creating product:", error);
       res.status(500).json({ message: "Failed to create product" });
@@ -92,7 +125,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/purchases", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { productId } = req.body;
+      
+      // Validate request
+      const validation = purchaseRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid purchase request", 
+          errors: validation.error.errors 
+        });
+      }
+
+      const { productId } = validation.data;
 
       // Atomic purchase transaction
       const result = await storage.processPurchase(userId, productId);
@@ -210,12 +253,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/deposits/initialize", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { amount } = req.body;
-
-      // Validate amount
-      if (amount < 100 || amount > 1000000) {
-        return res.status(400).json({ message: "Amount must be between ₦100 and ₦1,000,000" });
+      
+      // Validate request
+      const validation = depositInitializeSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid deposit amount", 
+          errors: validation.error.errors 
+        });
       }
+
+      const { amount } = validation.data;
 
       // Create pending transaction
       const transaction = await storage.createTransaction({
