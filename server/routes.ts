@@ -217,6 +217,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // SECURITY: Verify the requested amount matches the pending transaction amount
+      if (pendingTransaction.amount !== amount) {
+        return res.status(400).json({ 
+          message: "Amount mismatch with pending transaction" 
+        });
+      }
+
       // Verify payment with Paystack before processing
       const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
       if (!paystackSecretKey) {
