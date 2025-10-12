@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "../server/routes";
 
@@ -56,7 +57,14 @@ async function initializeApp() {
 }
 
 // Vercel serverless function handler
-export default async function handler(req: Request, res: Response) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   await initializeApp();
+  
+  // Vercel strips /api prefix from catch-all routes, so we need to prepend it
+  // Express routes are mounted under /api/* in server/routes.ts
+  const originalUrl = req.url || '/';
+  req.url = `/api${originalUrl.startsWith('/') ? originalUrl : '/' + originalUrl}`;
+  
+  // @ts-ignore - Express middleware works with Vercel's req/res
   return app(req, res);
 }

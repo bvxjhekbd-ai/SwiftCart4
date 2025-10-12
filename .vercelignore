@@ -7,8 +7,7 @@ replit.nix
 .git
 .gitignore
 
-# Build artifacts
-dist
+# Build artifacts - keep dist as Vercel needs it for output
 .vite
 
 # Environment files
@@ -37,6 +36,3 @@ scripts/
 ADMIN_API_GUIDE.md
 design_guidelines.md
 replit.md
-
-# Server files (we use api/ for serverless)
-server/index.ts

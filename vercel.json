@@ -1,29 +1,16 @@
 {
   "version": 2,
-  "buildCommand": "vite build && esbuild api/index.ts --platform=node --packages=external --bundle --format=esm --outdir=api",
+  "buildCommand": "vite build",
   "outputDirectory": "dist/public",
   "installCommand": "npm install",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
     }
   ],
   "functions": {
-    "api/index.js": {
+    "api/[...route].ts": {
       "maxDuration": 30
     }
   }

@@ -129,10 +129,14 @@ npm run db:push
 
 The project uses `vercel.json` for configuration:
 
-- **Build Command**: Builds frontend (Vite) and API (esbuild)
-- **Output Directory**: `dist/public` for static files
-- **API Routes**: Serverless functions in `/api` folder
-- **Routing**: All `/api/*` requests go to serverless functions, others to frontend
+- **Build Command**: `vite build` - Builds the React frontend
+- **Output Directory**: `dist/public` - Static files are served from here
+- **API Routes**: Serverless functions in `/api` folder using catch-all pattern `[...route].ts`
+- **Routing**: 
+  - `/api/*` requests → Automatically routed to `api/[...route].ts` serverless function
+  - All other requests → Rewritten to `/index.html` for SPA routing
+
+**Important:** The serverless handler in `api/[...route].ts` prepends `/api` to the URL before passing to Express, because Vercel strips this prefix from catch-all routes. This ensures Express routes mounted under `/api/*` in `server/routes.ts` match correctly.
 
 ## Important Notes
 
