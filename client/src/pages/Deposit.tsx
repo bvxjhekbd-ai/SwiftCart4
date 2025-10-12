@@ -70,31 +70,30 @@ export default function Deposit() {
             description: "You cancelled the payment",
           });
         },
-        callback: async function(response: any) {
+        callback: function(response: any) {
           // Verify payment
-          try {
-            const verifyResponse = await apiRequest("POST", "/api/deposits/verify", {
-              reference: response.reference,
-              amount: depositAmount,
-            });
+          apiRequest("POST", "/api/deposits/verify", {
+            reference: response.reference,
+            amount: depositAmount,
+          })
+            .then((verifyResponse) => verifyResponse.json())
+            .then((data) => {
+              toast({
+                title: "Deposit Successful",
+                description: `₦${depositAmount.toLocaleString()} added to your wallet`,
+              });
 
-            const data = await verifyResponse.json();
-            
-            toast({
-              title: "Deposit Successful",
-              description: `₦${depositAmount.toLocaleString()} added to your wallet`,
+              queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+              setAmount("");
+            })
+            .catch((error) => {
+              toast({
+                title: "Verification Failed",
+                description: "Payment verification failed. Contact support.",
+                variant: "destructive",
+              });
             });
-
-            queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-            queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-            setAmount("");
-          } catch (error) {
-            toast({
-              title: "Verification Failed",
-              description: "Payment verification failed. Contact support.",
-              variant: "destructive",
-            });
-          }
         },
       });
 
