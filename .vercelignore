@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+
+# Development files
+.replit
+replit.nix
+.git
+.gitignore
+
+# Build artifacts
+dist
+.vite
+
+# Environment files
+.env.local
+.env.development
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Replit specific
+scripts/
+ADMIN_API_GUIDE.md
+design_guidelines.md
+replit.md
+
+# Server files (we use api/ for serverless)
+server/index.ts
