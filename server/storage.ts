@@ -208,6 +208,19 @@ export class DatabaseStorage implements IStorage {
         return { success: false, message: "Insufficient wallet balance" };
       }
 
+      // CRITICAL: Mark product as sold with conditional update to prevent race conditions
+      // Only update if status is still "available" - this prevents double purchases
+      const updatedProducts = await tx
+        .update(products)
+        .set({ status: "sold" })
+        .where(and(eq(products.id, productId), eq(products.status, "available")))
+        .returning();
+
+      // If no rows were updated, another transaction already purchased this product
+      if (updatedProducts.length === 0) {
+        return { success: false, message: "Product was just purchased by another user" };
+      }
+
       // Deduct from wallet atomically
       const [updatedUser] = await tx
         .update(users)
@@ -224,12 +237,6 @@ export class DatabaseStorage implements IStorage {
           amount: product.price,
         })
         .returning();
-
-      // Mark product as sold
-      await tx
-        .update(products)
-        .set({ status: "sold" })
-        .where(eq(products.id, productId));
 
       // Create transaction record
       await tx.insert(transactions).values({
