@@ -31,7 +31,7 @@ export default function Deposit() {
   const depositMutation = useMutation({
     mutationFn: async (depositAmount: number) => {
       // Initialize deposit
-      const response = await apiRequest("POST", "/api/deposits/initialize", {
+      const response = await apiRequest("POST", "/api/deposits?action=initialize", {
         amount: depositAmount,
       });
 
@@ -72,7 +72,7 @@ export default function Deposit() {
         },
         callback: function(response: any) {
           // Verify payment
-          apiRequest("POST", "/api/deposits/verify", {
+          apiRequest("POST", "/api/deposits?action=verify", {
             reference: response.reference,
             amount: depositAmount,
           })
@@ -83,7 +83,7 @@ export default function Deposit() {
                 description: `₦${depositAmount.toLocaleString()} added to your wallet`,
               });
 
-              queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/auth", { action: "user" }] });
               queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
               setAmount("");
             })

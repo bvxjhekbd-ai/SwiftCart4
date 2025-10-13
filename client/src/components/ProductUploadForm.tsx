@@ -54,7 +54,7 @@ export function ProductUploadForm() {
 
   const createProductMutation = useMutation({
     mutationFn: async (productData: any) => {
-      const response = await apiRequest("POST", "/api/admin/dashboard/products", productData);
+      const response = await apiRequest("POST", "/api/admin?action=create-product", productData);
       return response.json();
     },
     onSuccess: () => {
@@ -62,8 +62,8 @@ export function ProductUploadForm() {
         title: "Product Created",
         description: "Account has been added successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", { action: "stats" }] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin", { action: "all-products" }] });
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       // Reset form
       setFormData({

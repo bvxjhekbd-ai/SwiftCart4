@@ -17,7 +17,7 @@ export function CartSheet() {
 
   const checkoutMutation = useMutation({
     mutationFn: async (productIds: string[]) => {
-      const response = await apiRequest("POST", "/api/purchases/bulk", { productIds });
+      const response = await apiRequest("POST", "/api/purchases?action=bulk", { productIds });
       return await response.json();
     },
     onSuccess: (data) => {
@@ -32,7 +32,7 @@ export function CartSheet() {
       
       clearCart();
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth", { action: "user" }] });
       queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
     },
     onError: (error: Error) => {

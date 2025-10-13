@@ -19,7 +19,7 @@ export function useAuth() {
   }, []);
 
   const { data: user, isLoading } = useQuery<User | null>({
-    queryKey: ["/api/auth/user"],
+    queryKey: ["/api/auth", { action: "user" }],
     retry: false,
     enabled: isReady,
     queryFn: async () => {
@@ -30,7 +30,7 @@ export function useAuth() {
         headers["Authorization"] = authHeaders.Authorization;
       }
       
-      const res = await fetch("/api/auth/user", {
+      const res = await fetch("/api/auth?action=user", {
         credentials: "include",
         headers,
       });
