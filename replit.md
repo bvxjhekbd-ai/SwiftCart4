@@ -154,19 +154,7 @@ All endpoints now include comprehensive validation:
 - **Deposit verify**: Reference required, amount must be positive integer
 - **Admin products**: Full social media account validation (username, password, email format)
 
-## Recent Changes (January 2025)
-- **Vercel Deployment Ready**: Confirmed optimal Vercel configuration using modern rewrites/functions approach
-  - Current setup uses modern `rewrites` instead of deprecated `builds/routes`
-  - Serverless function properly configured in `api/[...route].ts`
-  - No changes needed to server/index.ts for Vercel deployment
-  - See `VERCEL_SETUP_CHECKLIST.md` for deployment guide
-- **Fixed CartDrawer Bug**: Removed mock data, now uses real cart functionality via useCart hook
-- **Environment Variables Documentation**: Created comprehensive `.env.example` with all required and optional variables
-  - Documented all backend and frontend environment variables
-  - Added Vercel-specific configuration notes
-  - Included database connection string examples for different providers
-
-## Previous Changes (December 2024)
+## Recent Changes (December 2024)
 - **Fixed critical bulk purchase bug**: Resolved database array literal error in cart checkout
 - **Fixed React warnings**: Removed nested anchor tags in Header component
 - **Added image upload**: Admins can now upload images directly (base64, 5MB limit) instead of only URLs
