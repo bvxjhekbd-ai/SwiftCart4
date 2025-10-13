@@ -72,15 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const allTransactions = await db.query.transactions.findMany();
       const deposits = allTransactions.filter((t) => t.type === "deposit");
-      
-      // Enrich deposits with user data
-      const users = await db.query.users.findMany();
-      const enrichedDeposits = deposits.map(d => ({
-        ...d,
-        user: users.find(u => u.id === d.userId) || { email: 'Unknown', firstName: 'Unknown', lastName: '' },
-      }));
-      
-      return res.status(200).json(enrichedDeposits);
+      return res.status(200).json(deposits);
     } catch (error) {
       console.error('Error fetching all deposits:', error);
       return res.status(500).json({ message: 'Failed to fetch deposits' });

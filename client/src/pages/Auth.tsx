@@ -37,6 +37,8 @@ export default function Auth() {
       if (error) throw error;
 
       if (data.session) {
+        console.log('Sign in successful, session:', data.session);
+        
         toast({
           title: "Welcome back!",
           description: "You have successfully signed in",
@@ -44,11 +46,14 @@ export default function Auth() {
         
         // Wait for session to be persisted, then invalidate and redirect
         setTimeout(async () => {
+          console.log('Invalidating queries and redirecting...');
           await queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
+          console.log('About to redirect to /');
           setLocation("/");
-        }, 500);
+        }, 1000);
       }
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast({
         title: "Sign in failed",
         description: error.message || "Invalid credentials",

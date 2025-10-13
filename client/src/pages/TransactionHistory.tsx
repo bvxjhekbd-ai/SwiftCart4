@@ -67,11 +67,6 @@ export default function TransactionHistory() {
                       <Calendar className="h-3 w-3" />
                       {transaction.createdAt ? new Date(transaction.createdAt).toLocaleString() : 'N/A'}
                     </div>
-                    {transaction.reference && (
-                      <p className="text-xs text-muted-foreground mt-1" data-testid={`tx-ref-${transaction.id}`}>
-                        TX ID: {transaction.reference}
-                      </p>
-                    )}
                   </div>
                 </div>
                 <div className="text-right">

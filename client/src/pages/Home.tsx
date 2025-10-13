@@ -24,18 +24,14 @@ export default function Home() {
       const response = await apiRequest("POST", "/api/purchases", { productId });
       return await response.json();
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       toast({
         title: "Purchase Successful!",
         description: `Account purchased. New balance: ₦${data.newBalance.toLocaleString()}`,
       });
-      
-      // Instant parallel invalidation for super slick speed
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["/api/products"] }),
-        queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] }),
-        queryClient.invalidateQueries({ queryKey: ["/api/purchases"] })
-      ]);
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
