@@ -17,13 +17,13 @@ export default function AdminUsers() {
   const { toast } = useToast();
 
   const { data: users, isLoading } = useQuery<User[]>({
-    queryKey: ["/api/admin", { action: "users" }],
+    queryKey: ["/api/admin/users"],
     enabled: isAuthenticated && user?.isAdmin === true,
   });
 
   const toggleAdminMutation = useMutation({
     mutationFn: async ({ userId, isAdmin }: { userId: string; isAdmin: boolean }) => {
-      const response = await apiRequest("PATCH", `/api/admin?action=update-user-admin-status&id=${userId}`, { isAdmin });
+      const response = await apiRequest("PATCH", `/api/admin/users/${userId}/admin-status`, { isAdmin });
       return response.json();
     },
     onSuccess: () => {
@@ -31,7 +31,7 @@ export default function AdminUsers() {
         title: "Success",
         description: "User admin status updated",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin", { action: "users" }] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
     },
     onError: (error: Error) => {
       toast({

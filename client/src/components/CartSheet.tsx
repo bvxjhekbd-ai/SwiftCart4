@@ -32,7 +32,7 @@ export function CartSheet() {
       
       clearCart();
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth", { action: "user" }] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
     },
     onError: (error: Error) => {
@@ -43,7 +43,7 @@ export function CartSheet() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/auth";
         }, 500);
         return;
       }
@@ -63,7 +63,7 @@ export function CartSheet() {
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/auth";
       }, 500);
       return;
     }

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { User } from "@shared/schema";
 import { supabase } from "@/lib/supabase";
+import { queryClient } from "@/lib/queryClient";
 
 export function useAuth() {
   const [isReady, setIsReady] = useState(false);
@@ -11,15 +12,19 @@ export function useAuth() {
       setIsReady(true);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       setIsReady(true);
+      // Invalidate user query when auth state changes
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const { data: user, isLoading } = useQuery<User | null>({
-    queryKey: ["/api/auth", { action: "user" }],
+    queryKey: ["/api/auth?action=user"],
     retry: false,
     enabled: isReady,
     queryFn: async () => {

@@ -12,7 +12,7 @@ export default function AdminDashboard() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
 
   const { data: stats } = useQuery<{ total: number; available: number; sold: number }>({
-    queryKey: ["/api/admin", { action: "stats" }],
+    queryKey: ["/api/admin/stats"],
     enabled: isAuthenticated && user?.isAdmin === true,
   });
 

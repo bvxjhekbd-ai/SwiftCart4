@@ -38,8 +38,8 @@ export default function Auth() {
 
       if (data.session) {
         // Invalidate and refetch user data immediately
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth", { action: "user" }] });
-        await queryClient.refetchQueries({ queryKey: ["/api/auth", { action: "user" }] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
+        await queryClient.refetchQueries({ queryKey: ["/api/auth?action=user"] });
         
         toast({
           title: "Welcome back!",
@@ -92,8 +92,8 @@ export default function Auth() {
 
       if (data.session) {
         // Invalidate and refetch user data immediately
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth", { action: "user" }] });
-        await queryClient.refetchQueries({ queryKey: ["/api/auth", { action: "user" }] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
+        await queryClient.refetchQueries({ queryKey: ["/api/auth?action=user"] });
         
         toast({
           title: "Account created!",

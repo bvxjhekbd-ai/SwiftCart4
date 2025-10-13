@@ -23,7 +23,7 @@ export default function Deposit() {
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/auth";
       }, 500);
     }
   }, [isAuthenticated, authLoading, toast]);
@@ -83,7 +83,7 @@ export default function Deposit() {
                 description: `₦${depositAmount.toLocaleString()} added to your wallet`,
               });
 
-              queryClient.invalidateQueries({ queryKey: ["/api/auth", { action: "user" }] });
+              queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
               queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
               setAmount("");
             })
@@ -107,7 +107,7 @@ export default function Deposit() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/auth";
         }, 500);
         return;
       }

@@ -30,7 +30,7 @@ export default function Home() {
         description: `Account purchased. New balance: ₦${data.newBalance.toLocaleString()}`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth", { action: "user" }] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
     },
     onError: (error: Error) => {
@@ -41,7 +41,7 @@ export default function Home() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/auth";
         }, 500);
         return;
       }
@@ -63,7 +63,7 @@ export default function Home() {
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/auth";
       }, 500);
       return;
     }
