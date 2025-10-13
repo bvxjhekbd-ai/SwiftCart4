@@ -48,3 +48,11 @@ scripts
 # Development-only server files
 server/index.ts
 server/vite.ts
+
+# Old API structure (replaced with consolidated endpoints)
+api/auth/
+api/products/
+api/admin/
+api/deposits/
+api/purchases/
+api/transactions/
