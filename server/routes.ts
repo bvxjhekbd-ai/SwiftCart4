@@ -75,18 +75,6 @@ const isAdmin = async (req: any, res: any, next: any) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Health check endpoint for debugging Vercel deployments
-  app.get("/api/health", (req, res) => {
-    res.json({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || "development",
-      databaseConfigured: !!process.env.DATABASE_URL,
-      supabaseConfigured: !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
-      supabaseServiceRoleConfigured: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    });
-  });
-
   // Setup Supabase Auth routes
   await setupSupabaseAuth(app);
 
