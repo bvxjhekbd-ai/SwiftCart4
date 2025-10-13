@@ -96,10 +96,23 @@ curl -X POST https://your-app.replit.app/api/admin/products \
 - `VITE_PAYSTACK_PUBLIC_KEY` - Paystack public key for frontend
 
 ## Deployment Notes
-- Compatible with Vercel deployment
-- Uses PostgreSQL for data persistence
-- Replit Auth handles authentication
+- **Vercel Deployment Ready** - Fully configured with individual serverless functions
+- Uses PostgreSQL for data persistence (Neon or Supabase recommended for Vercel)
+- Supabase Auth handles authentication
 - Paystack integration for payments (₦100 - ₦1,000,000 limits enforced)
+- Environment variable validation with startup logging
+- Per-request database initialization (serverless-safe)
+
+### Vercel Serverless Structure
+All API routes converted to individual serverless functions in `/api` directory:
+- `api/auth/*` - Authentication endpoints
+- `api/products/*` - Product endpoints  
+- `api/purchases/*` - Purchase & cart endpoints
+- `api/deposits/*` - Payment/deposit endpoints
+- `api/transactions/*` - Transaction history
+- `api/admin/*` - Admin dashboard endpoints
+
+See `API_STRUCTURE.md` and `VERCEL_DEPLOYMENT.md` for complete deployment guide.
 
 ## User Flow
 1. **Landing Page** - Logged-out users see landing page
@@ -154,7 +167,15 @@ All endpoints now include comprehensive validation:
 - **Deposit verify**: Reference required, amount must be positive integer
 - **Admin products**: Full social media account validation (username, password, email format)
 
-## Recent Changes (December 2024)
+## Recent Changes (October 2024)
+- **✅ Vercel Deployment Conversion** - Converted entire backend to serverless functions
+  - Individual API handlers for each endpoint (following Vercel best practices)
+  - Environment variable validation with console logging
+  - Per-request database initialization (serverless-safe)
+  - Fixed vercel.json SPA routing configuration
+  - Created comprehensive API documentation
+
+## Previous Changes (December 2024)
 - **Fixed critical bulk purchase bug**: Resolved database array literal error in cart checkout
 - **Fixed React warnings**: Removed nested anchor tags in Header component
 - **Added image upload**: Admins can now upload images directly (base64, 5MB limit) instead of only URLs
