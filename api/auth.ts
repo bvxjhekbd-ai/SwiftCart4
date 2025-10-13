@@ -3,12 +3,74 @@
  * Handles: signin, signup, signout, user
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabaseClients, verifyToken } from './_utils/auth';
-import { initDB } from './_utils/db';
+import { createClient } from "@supabase/supabase-js";
+import { neon, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import { eq } from 'drizzle-orm';
 import * as schema from '../shared/schema';
+import ws from 'ws';
+
+neonConfig.webSocketConstructor = ws;
 
 const ADMIN_EMAILS = ["ighanghangodspower@gmail.com"];
+
+// Utility: Get env variable
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
+// Utility: Initialize DB
+function initDB() {
+  const DATABASE_URL = requireEnv('DATABASE_URL');
+  const sql = neon(DATABASE_URL);
+  return drizzle(sql, { schema });
+}
+
+// Utility: Get Supabase clients
+function getSupabaseClients() {
+  const SUPABASE_URL = requireEnv('SUPABASE_URL');
+  const SUPABASE_ANON_KEY = requireEnv('SUPABASE_ANON_KEY');
+  const SUPABASE_SERVICE_ROLE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  const supabaseAdmin = createClient(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+
+  return { supabase, supabaseAdmin };
+}
+
+// Utility: Verify token
+async function verifyToken(req: VercelRequest) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.toString().split(" ")[1];
+
+  if (!token) {
+    throw new Error('No token provided');
+  }
+
+  const { supabaseAdmin } = getSupabaseClients();
+  
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+  
+  if (error || !data.user) {
+    throw new Error('Invalid or expired token');
+  }
+
+  return data.user;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { action } = req.query;
