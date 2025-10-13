@@ -16,6 +16,7 @@ import AdminProducts from "@/pages/AdminProducts";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminDeposits from "@/pages/AdminDeposits";
 import AdminPurchases from "@/pages/AdminPurchases";
+import ApiDiagnostic from "@/pages/ApiDiagnostic";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,6 +24,9 @@ function Router() {
 
   return (
     <Switch>
+      {/* Diagnostic page accessible anytime */}
+      <Route path="/api-diagnostic" component={ApiDiagnostic} />
+      
       {isLoading ? (
         <Route path="/" component={() => <div className="flex h-screen items-center justify-center">Loading...</div>} />
       ) : !isAuthenticated ? (
