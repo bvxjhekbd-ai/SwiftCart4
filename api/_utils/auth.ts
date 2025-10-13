@@ -2,7 +2,7 @@
  * Authentication utilities for Vercel serverless functions
  */
 import { createClient } from "@supabase/supabase-js";
-import { requireEnv } from './env-validator';
+import { requireEnv } from './env-validator.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Initialize Supabase clients

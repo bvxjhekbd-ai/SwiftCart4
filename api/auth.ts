@@ -3,10 +3,10 @@
  * Handles: signin, signup, signout, user
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabaseClients, verifyToken } from './_utils/auth';
-import { initDB } from './_utils/db';
+import { getSupabaseClients, verifyToken } from './_utils/auth.js';
+import { initDB } from './_utils/db.js';
 import { eq } from 'drizzle-orm';
-import * as schema from '../shared/schema';
+import * as schema from '../shared/schema.js';
 
 const ADMIN_EMAILS = ["ighanghangodspower@gmail.com"];
 

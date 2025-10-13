@@ -3,8 +3,8 @@
  * Get product details by ID (requires authentication)
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { initDB } from '../_utils/db';
-import { requireAuth } from '../_utils/auth';
+import { initDB } from '../_utils/db.js';
+import { requireAuth } from '../_utils/auth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {

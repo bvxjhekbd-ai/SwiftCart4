@@ -2,10 +2,10 @@
  * POST /api/deposits/initialize - Initialize Paystack deposit
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { requireAuth } from '../_utils/auth';
-import { initDB } from '../_utils/db';
+import { requireAuth } from '../_utils/auth.js';
+import { initDB } from '../_utils/db.js';
 import { z } from 'zod';
-import * as schema from '../../shared/schema';
+import * as schema from '../../shared/schema.js';
 
 const depositInitializeSchema = z.object({
   amount: z.number()

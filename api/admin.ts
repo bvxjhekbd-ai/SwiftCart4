@@ -3,10 +3,10 @@
  * All admin operations with query parameters
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { requireAdmin } from './_utils/auth';
-import { initDB } from './_utils/db';
+import { requireAdmin } from './_utils/auth.js';
+import { initDB } from './_utils/db.js';
 import { z } from 'zod';
-import * as schema from '../shared/schema';
+import * as schema from '../shared/schema.js';
 import { eq } from 'drizzle-orm';
 
 const socialMediaAccountValidator = z.object({

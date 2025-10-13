@@ -3,9 +3,9 @@
  * User signup endpoint
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabaseClients } from '../_utils/auth';
-import { initDB } from '../_utils/db';
-import * as schema from '../../shared/schema';
+import { getSupabaseClients } from '../_utils/auth.js';
+import { initDB } from '../_utils/db.js';
+import * as schema from '../../shared/schema.js';
 
 const ADMIN_EMAILS = ["ighanghangodspower@gmail.com"];
 

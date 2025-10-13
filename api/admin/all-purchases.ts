@@ -2,8 +2,8 @@
  * GET /api/admin/all-purchases - Get all purchases (admin only)
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { requireAdmin } from '../_utils/auth';
-import { initDB } from '../_utils/db';
+import { requireAdmin } from '../_utils/auth.js';
+import { initDB } from '../_utils/db.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {

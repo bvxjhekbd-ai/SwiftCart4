@@ -3,10 +3,10 @@
  * GET /api/purchases - Get user's purchases
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { requireAuth } from '../_utils/auth';
-import { initDB } from '../_utils/db';
+import { requireAuth } from '../_utils/auth.js';
+import { initDB } from '../_utils/db.js';
 import { z } from 'zod';
-import * as schema from '../../shared/schema';
+import * as schema from '../../shared/schema.js';
 import { eq } from 'drizzle-orm';
 
 const purchaseRequestSchema = z.object({

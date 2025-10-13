@@ -3,10 +3,10 @@
  * User signin endpoint
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabaseClients } from '../_utils/auth';
-import { initDB } from '../_utils/db';
+import { getSupabaseClients } from '../_utils/auth.js';
+import { initDB } from '../_utils/db.js';
 import { eq } from 'drizzle-orm';
-import * as schema from '../../shared/schema';
+import * as schema from '../../shared/schema.js';
 
 const ADMIN_EMAILS = ["ighanghangodspower@gmail.com"];
 

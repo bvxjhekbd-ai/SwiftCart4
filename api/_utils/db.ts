@@ -4,9 +4,9 @@
  */
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '../../shared/schema';
+import * as schema from '../../shared/schema.js';
 import ws from 'ws';
-import { requireEnv } from './env-validator';
+import { requireEnv } from './env-validator.js';
 
 // Configure WebSocket for Neon
 neonConfig.webSocketConstructor = ws;
