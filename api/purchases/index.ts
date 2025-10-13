@@ -50,36 +50,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ message: "Insufficient balance" });
       }
 
-      // Create purchase and update balances
-      const [purchase] = await db.transaction(async (tx) => {
-        const [newPurchase] = await tx.insert(schema.purchases).values({
-          userId: user.id,
-          productId,
-          amount: product.price,
-        }).returning();
+      // Create purchase record
+      const [purchase] = await db.insert(schema.purchases).values({
+        userId: user.id,
+        productId,
+        amount: product.price,
+      }).returning();
 
-        await tx.update(schema.products)
-          .set({ status: 'sold' })
-          .where(eq(schema.products.id, productId));
+      // Mark product as sold
+      await db.update(schema.products)
+        .set({ status: 'sold' })
+        .where(eq(schema.products.id, productId));
 
-        await tx.update(schema.users)
-          .set({ walletBalance: dbUser.walletBalance - product.price })
-          .where(eq(schema.users.id, user.id));
+      // Deduct from user balance
+      const newBalance = dbUser.walletBalance - product.price;
+      await db.update(schema.users)
+        .set({ walletBalance: newBalance })
+        .where(eq(schema.users.id, user.id));
 
-        await tx.insert(schema.transactions).values({
-          userId: user.id,
-          type: 'purchase',
-          amount: product.price,
-          status: 'completed',
-          metadata: { productId },
-        });
-
-        return [newPurchase];
+      // Record transaction
+      await db.insert(schema.transactions).values({
+        userId: user.id,
+        type: 'purchase',
+        amount: product.price,
+        status: 'completed',
+        metadata: { productId },
       });
 
       return res.status(201).json({
         purchase,
-        newBalance: dbUser.walletBalance - product.price,
+        newBalance,
       });
     } catch (error) {
       console.error('Error creating purchase:', error);

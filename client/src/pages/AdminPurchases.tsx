@@ -17,7 +17,7 @@ export default function AdminPurchases() {
   const [, setLocation] = useLocation();
 
   const { data: purchases, isLoading } = useQuery<PurchaseWithDetails[]>({
-    queryKey: ["/api/admin", { action: "all-purchases" }],
+    queryKey: ["/api/admin/all-purchases"],
     enabled: isAuthenticated && user?.isAdmin === true,
   });
 

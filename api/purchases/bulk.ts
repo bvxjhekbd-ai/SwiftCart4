@@ -61,42 +61,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ message: "Insufficient balance" });
     }
 
-    // Process bulk purchase atomically
-    const purchases = await db.transaction(async (tx) => {
-      const newPurchases: any[] = [];
+    // Process bulk purchase sequentially
+    const purchases: any[] = [];
 
-      for (const product of availableProducts) {
-        const [purchase] = await tx.insert(schema.purchases).values({
-          userId: user.id,
-          productId: product.id,
-          amount: product.price,
-        }).returning();
-
-        await tx.update(schema.products)
-          .set({ status: 'sold' })
-          .where(eq(schema.products.id, product.id));
-
-        newPurchases.push(purchase);
-      }
-
-      await tx.update(schema.users)
-        .set({ walletBalance: dbUser.walletBalance - total })
-        .where(eq(schema.users.id, user.id));
-
-      await tx.insert(schema.transactions).values({
+    // Create purchase records and mark products as sold
+    for (const product of availableProducts) {
+      const [purchase] = await db.insert(schema.purchases).values({
         userId: user.id,
-        type: 'purchase',
-        amount: total,
-        status: 'completed',
-        metadata: { productIds: availableProducts.map(p => p.id) },
-      });
+        productId: product.id,
+        amount: product.price,
+      }).returning();
 
-      return newPurchases;
+      await db.update(schema.products)
+        .set({ status: 'sold' })
+        .where(eq(schema.products.id, product.id));
+
+      purchases.push(purchase);
+    }
+
+    // Update user balance
+    const newBalance = dbUser.walletBalance - total;
+    await db.update(schema.users)
+      .set({ walletBalance: newBalance })
+      .where(eq(schema.users.id, user.id));
+
+    // Record transaction
+    await db.insert(schema.transactions).values({
+      userId: user.id,
+      type: 'purchase',
+      amount: total,
+      status: 'completed',
+      metadata: { productIds: availableProducts.map(p => p.id) },
     });
 
     return res.status(201).json({
       purchases,
-      newBalance: dbUser.walletBalance - total,
+      newBalance,
       successCount: purchases.length,
       failedProducts,
     });
