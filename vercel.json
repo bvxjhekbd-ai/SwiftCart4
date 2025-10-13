@@ -1,21 +1,28 @@
 {
-  "buildCommand": "vite build",
-  "installCommand": "npm install",
-  "framework": "vite",
-  "outputDirectory": "dist/public",
+  "buildCommand": "npm run build --prefix client",
+  "installCommand": "npm install --prefix client && npm install",
+  "outputDirectory": "client/dist",
   "rewrites": [
     { 
-      "source": "/api/(.*)", 
-      "destination": "/api/[...route]" 
+      "source": "/api/:path*", 
+      "destination": "/api/:path*" 
+    },
+    { 
+      "source": "/:path*", 
+      "destination": "/client/dist/index.html" 
     }
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/:path*",
       "headers": [
-        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Cookie" }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
