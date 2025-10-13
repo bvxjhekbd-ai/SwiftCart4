@@ -92,7 +92,7 @@ export default function AdminProducts() {
   };
 
   const editMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Product> }) => {
       const response = await apiRequest("PATCH", `/api/admin/dashboard/products/${id}`, data);
       return response.json();
     },
@@ -188,7 +188,7 @@ export default function AdminProducts() {
 
             <div className="grid gap-4">
               {products && products.length > 0 ? (
-                products.map((product: any) => (
+                products.map((product: Product) => (
                   <Card key={product.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">

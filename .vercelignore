@@ -1,0 +1,50 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Development files
+.replit
+.config
+.git
+.gitignore
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Logs
+logs
+*.log
+
+# Testing
+coverage
+.nyc_output
+
+# Build artifacts (except dist/public which is needed)
+dist/index.js
+dist/*.map
+
+# Replit specific
+attached_assets
+scripts
+*.md
+!README.md
+
+# Development-only server files
+server/index.ts
+server/vite.ts
