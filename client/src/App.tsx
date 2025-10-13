@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ConfigurationError } from "@/components/ConfigurationError";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/Landing";
 import Auth from "@/pages/Auth";
@@ -23,9 +24,11 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
-    <Switch>
-      {/* Diagnostic page accessible anytime */}
-      <Route path="/api-diagnostic" component={ApiDiagnostic} />
+    <>
+      <ConfigurationError />
+      <Switch>
+        {/* Diagnostic page accessible anytime */}
+        <Route path="/api-diagnostic" component={ApiDiagnostic} />
       
       {isLoading ? (
         <Route path="/" component={() => <div className="flex h-screen items-center justify-center">Loading...</div>} />
@@ -48,7 +51,8 @@ function Router() {
         </>
       )}
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </>
   );
 }
 
