@@ -134,15 +134,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // GET /api/auth?action=user
   if (action === 'user' && req.method === 'GET') {
     try {
-      const user = await verifyToken(req);
+      const supabaseUser = await verifyToken(req);
       const db = initDB();
 
-      const dbUser = await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.id, user.id)
+      let dbUser = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, supabaseUser.id)
       });
 
+      // If user doesn't exist in database, sync them from Supabase
       if (!dbUser) {
-        return res.status(404).json({ message: 'User not found in database' });
+        const isAdmin = ADMIN_EMAILS.includes(supabaseUser.email || '');
+        
+        await db.insert(schema.users)
+          .values({
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            firstName: supabaseUser.user_metadata?.first_name || supabaseUser.email?.split('@')[0] || '',
+            lastName: supabaseUser.user_metadata?.last_name || '',
+            profileImageUrl: supabaseUser.user_metadata?.avatar_url || '',
+            walletBalance: 0,
+            isAdmin: isAdmin,
+          })
+          .onConflictDoUpdate({
+            target: schema.users.id,
+            set: {
+              email: supabaseUser.email || '',
+              firstName: supabaseUser.user_metadata?.first_name || supabaseUser.email?.split('@')[0] || '',
+              lastName: supabaseUser.user_metadata?.last_name || '',
+              profileImageUrl: supabaseUser.user_metadata?.avatar_url || '',
+            }
+          });
+
+        if (isAdmin) {
+          await db.update(schema.users)
+            .set({ isAdmin: true })
+            .where(eq(schema.users.id, supabaseUser.id));
+        }
+
+        // Fetch the newly created user
+        dbUser = await db.query.users.findFirst({
+          where: (users, { eq }) => eq(users.id, supabaseUser.id)
+        });
+      }
+
+      if (!dbUser) {
+        return res.status(500).json({ message: 'Failed to sync user' });
       }
 
       return res.status(200).json({
