@@ -52,21 +52,21 @@ export default function AdminProducts() {
   });
 
   const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ["/api/admin/all-products"],
+    queryKey: ["/api/admin?action=all-products"],
     enabled: isAuthenticated && user?.isAdmin === true,
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (productId: string) => {
-      await apiRequest("DELETE", `/api/admin/dashboard/products/${productId}`);
+      await apiRequest("DELETE", `/api/admin?action=delete-product&id=${productId}`);
     },
     onSuccess: () => {
       toast({
         title: "Product deleted",
         description: "The product has been deleted successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?action=all-products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?action=stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       setDeleteDialogOpen(false);
       setProductToDelete(null);
@@ -93,7 +93,7 @@ export default function AdminProducts() {
 
   const editMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Product> }) => {
-      const response = await apiRequest("PATCH", `/api/admin/dashboard/products/${id}`, data);
+      const response = await apiRequest("PATCH", `/api/admin?action=update-product&id=${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -101,8 +101,8 @@ export default function AdminProducts() {
         title: "Product updated",
         description: "The product has been updated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?action=all-products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?action=stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       setEditDialogOpen(false);
       setProductToEdit(null);

@@ -62,8 +62,8 @@ export function ProductUploadForm() {
         title: "Product Created",
         description: "Account has been added successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin", { action: "stats" }] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin", { action: "all-products" }] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?action=stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?action=all-products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       // Reset form
       setFormData({

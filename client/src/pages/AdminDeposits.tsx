@@ -21,17 +21,17 @@ export default function AdminDeposits() {
   const [, setLocation] = useLocation();
 
   const { data: deposits, isLoading } = useQuery<DepositWithUser[]>({
-    queryKey: ["/api/admin/all-deposits"],
+    queryKey: ["/api/admin?action=all-deposits"],
     enabled: isAuthenticated && user?.isAdmin === true,
   });
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      await apiRequest("PATCH", `/api/admin/transactions/${id}/status`, { status });
+      await apiRequest("PATCH", `/api/admin?action=update-transaction-status&id=${id}`, { status });
     },
     onSuccess: () => {
       toast({ title: "Status Updated", description: "Transaction status has been updated" });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/all-deposits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin?action=all-deposits"] });
     },
     onError: (error: Error) => {
       toast({

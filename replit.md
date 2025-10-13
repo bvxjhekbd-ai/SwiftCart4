@@ -168,12 +168,25 @@ All endpoints now include comprehensive validation:
 - **Admin products**: Full social media account validation (username, password, email format)
 
 ## Recent Changes (October 2024)
-- **✅ Vercel Deployment Conversion** - Converted entire backend to serverless functions
-  - Individual API handlers for each endpoint (following Vercel best practices)
-  - Environment variable validation with console logging
-  - Per-request database initialization (serverless-safe)
-  - Fixed vercel.json SPA routing configuration
-  - Created comprehensive API documentation
+- **✅ Fixed Login Redirect Issue** - Resolved timing issues with Supabase session persistence
+  - Increased post-login delay from 100ms to 500ms to ensure session is saved before redirect
+  - All users (admin and non-admin) now redirect properly after successful login
+  
+- **✅ Consolidated to 6 Serverless Functions** - Stayed under Vercel's 12 function limit
+  - Removed duplicate split API endpoints
+  - Kept only consolidated functions with query parameters:
+    1. `/api/auth.ts` (handles signin, signup, signout, user)
+    2. `/api/admin.ts` (handles all admin operations with action query param)
+    3. `/api/deposits.ts` (handles initialize and verify)
+    4. `/api/products.ts` (handles get all and get by ID)
+    5. `/api/purchases.ts` (handles single, bulk, and get all)
+    6. `/api/transactions.ts` (handles user transactions)
+  - Updated all client code to use query parameter format (e.g., `/api/admin?action=stats`)
+  
+- **✅ Fixed Database Transaction Support** - Switched from neon-http to neon-serverless
+  - Changed driver from `drizzle-orm/neon-http` to `drizzle-orm/neon-serverless`
+  - Fixed drizzle initialization signature to use `drizzle(pool, { schema })`
+  - All deposits, purchases, and bulk checkouts now work correctly with database transactions
 
 ## Previous Changes (December 2024)
 - **Fixed critical bulk purchase bug**: Resolved database array literal error in cart checkout

@@ -37,19 +37,16 @@ export default function Auth() {
       if (error) throw error;
 
       if (data.session) {
-        // Invalidate and refetch user data immediately
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
-        await queryClient.refetchQueries({ queryKey: ["/api/auth?action=user"] });
-        
         toast({
           title: "Welcome back!",
           description: "You have successfully signed in",
         });
         
-        // Small delay to ensure auth state is updated
-        setTimeout(() => {
+        // Wait for session to be persisted, then invalidate and redirect
+        setTimeout(async () => {
+          await queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
           setLocation("/");
-        }, 100);
+        }, 500);
       }
     } catch (error: any) {
       toast({
@@ -91,19 +88,16 @@ export default function Auth() {
       if (error) throw error;
 
       if (data.session) {
-        // Invalidate and refetch user data immediately
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
-        await queryClient.refetchQueries({ queryKey: ["/api/auth?action=user"] });
-        
         toast({
           title: "Account created!",
           description: "You have successfully signed up",
         });
         
-        // Small delay to ensure auth state is updated
-        setTimeout(() => {
+        // Wait for session to be persisted, then invalidate and redirect
+        setTimeout(async () => {
+          await queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
           setLocation("/");
-        }, 100);
+        }, 500);
       } else {
         toast({
           title: "Check your email",
