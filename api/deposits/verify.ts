@@ -88,16 +88,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update transaction status to completed
-    await db.update(schema.transactions)
-      .set({ status: 'completed' })
-      .where(eq(schema.transactions.id, reference));
+    // Update user balance and transaction status atomically
+    const newBalance = await db.transaction(async (tx) => {
+      await tx.update(schema.transactions)
+        .set({ status: 'completed' })
+        .where(eq(schema.transactions.id, reference));
 
-    // Update user balance
-    const newBalance = dbUser.walletBalance + amount;
-    await db.update(schema.users)
-      .set({ walletBalance: newBalance })
-      .where(eq(schema.users.id, user.id));
+      await tx.update(schema.users)
+        .set({ walletBalance: dbUser.walletBalance + amount })
+        .where(eq(schema.users.id, user.id));
+
+      return dbUser.walletBalance + amount;
+    });
 
     return res.status(200).json({
       message: "Deposit successful",
