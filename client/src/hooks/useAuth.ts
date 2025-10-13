@@ -28,7 +28,10 @@ export function useAuth() {
     retry: false,
     enabled: isReady,
     queryFn: async () => {
+      console.log('useAuth: Fetching user data...');
       const authHeaders = await import("@/lib/supabase").then(m => m.getAuthHeaders());
+      
+      console.log('useAuth: Auth headers:', authHeaders);
       
       const headers: Record<string, string> = {};
       if (authHeaders.Authorization) {
@@ -40,17 +43,23 @@ export function useAuth() {
         headers,
       });
 
+      console.log('useAuth: Response status:', res.status);
+
       // Return null for unauthorized users instead of throwing
       if (res.status === 401) {
+        console.log('useAuth: Unauthorized (401), returning null');
         return null;
       }
 
       if (!res.ok) {
         const text = (await res.text()) || res.statusText;
+        console.error('useAuth: Error response:', text);
         throw new Error(`${res.status}: ${text}`);
       }
 
-      return await res.json();
+      const userData = await res.json();
+      console.log('useAuth: User data received:', userData);
+      return userData;
     },
   });
 
