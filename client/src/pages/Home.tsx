@@ -1,10 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
-import { Hero } from "@/components/Hero";
-import { CategoryFilter } from "@/components/CategoryFilter";
 import { ProductCard } from "@/components/ProductCard";
-import { TrustSection } from "@/components/TrustSection";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/useCart";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -103,8 +100,6 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <Header onPurchase={handlePurchase} />
-      <Hero />
-      <CategoryFilter />
 
       <main className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center justify-between">
@@ -139,8 +134,6 @@ export default function Home() {
           </div>
         )}
       </main>
-
-      <TrustSection />
 
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground sm:px-6 lg:px-8">
