@@ -90,16 +90,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // GET /api/admin?action=all-purchases
   if (action === 'all-purchases' && req.method === 'GET') {
     try {
-      const purchases = await db.query.purchases.findMany();
-      const [users, products] = await Promise.all([
-        db.query.users.findMany(),
-        db.query.products.findMany()
-      ]);
+      const { desc, sql } = await import('drizzle-orm');
+      const results = await db
+        .select()
+        .from(schema.purchases)
+        .leftJoin(schema.products, eq(schema.purchases.productId, schema.products.id))
+        .leftJoin(schema.users, eq(schema.purchases.userId, schema.users.id))
+        .orderBy(desc(sql`COALESCE(${schema.purchases.purchasedAt}, CURRENT_TIMESTAMP)`));
 
-      const enrichedPurchases = purchases.map(p => ({
-        ...p,
-        user: users.find(u => u.id === p.userId) || null,
-        product: products.find(pr => pr.id === p.productId) || null,
+      const enrichedPurchases = results.map((row) => ({
+        ...row.purchases,
+        product: row.products,
+        user: row.users,
       }));
 
       return res.status(200).json(enrichedPurchases);
