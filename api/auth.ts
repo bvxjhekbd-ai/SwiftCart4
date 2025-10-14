@@ -207,10 +207,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ message: 'Password must be at least 6 characters' });
       }
 
-      const { supabase } = getSupabaseClients();
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
+      const { supabaseAdmin } = getSupabaseClients();
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(
+        supabaseUser.id,
+        { password: newPassword }
+      );
 
       if (error) {
         return res.status(400).json({ message: error.message });
@@ -219,7 +220,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ message: 'Password updated successfully' });
     } catch (error) {
       console.error('Update password error:', error);
-      return res.status(500).json({ message: 'Failed to update password' });
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update password';
+      return res.status(401).json({ 
+        message: errorMessage,
+        isAuthError: true
+      });
     }
   }
 

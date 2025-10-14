@@ -15,14 +15,16 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
 
   useEffect(() => {
     // Check if user has a valid recovery session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
       if (event === "PASSWORD_RECOVERY") {
-        // User is in password recovery mode
-      } else if (event === "SIGNED_IN") {
-        // Password was successfully updated, redirect
+        // User is in password recovery mode - good, they can reset password
+        console.log("Password recovery mode detected");
+      } else if (event === "SIGNED_IN" && passwordUpdated) {
+        // Only redirect if password was actually updated through this form
         setTimeout(() => {
           setLocation("/");
         }, 2000);
@@ -32,7 +34,7 @@ export default function ResetPassword() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [setLocation]);
+  }, [setLocation, passwordUpdated]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +66,8 @@ export default function ResetPassword() {
 
       if (error) throw error;
 
+      setPasswordUpdated(true);
+      
       toast({
         title: "Password updated!",
         description: "Your password has been successfully reset. Redirecting...",

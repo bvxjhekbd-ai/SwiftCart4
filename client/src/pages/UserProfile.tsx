@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,16 +7,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Store, ArrowLeft, User as UserIcon, Mail, Lock } from "lucide-react";
-import { Link } from "wouter";
-import { getAuthHeaders } from "@/lib/supabase";
+import { Store, ArrowLeft, User as UserIcon, Mail, Lock, AlertCircle } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { getAuthHeaders, supabase } from "@/lib/supabase";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function UserProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Check if user is in recovery mode by seeing if they have a recovery token
+      const params = new URLSearchParams(window.location.hash.substring(1));
+      const type = params.get('type');
+      
+      if (type === 'recovery' || !session?.access_token) {
+        setIsRecoveryMode(true);
+      }
+    };
+    
+    checkSession();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecoveryMode(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +90,9 @@ export default function UserProfile() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.isAuthError || response.status === 401) {
+          throw new Error("Authentication session missing. Please use the password reset link from your email to reset your password.");
+        }
         throw new Error(data.message || "Failed to update password");
       }
 
@@ -174,6 +207,23 @@ export default function UserProfile() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {isRecoveryMode && (
+                <Alert className="mb-4" data-testid="alert-recovery-mode">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    You're in password recovery mode. Please use the{" "}
+                    <button 
+                      type="button"
+                      className="underline hover:no-underline font-medium"
+                      onClick={() => setLocation('/reset-password')}
+                      data-testid="button-go-to-reset"
+                    >
+                      password reset page
+                    </button>
+                    {" "}to reset your password.
+                  </AlertDescription>
+                </Alert>
+              )}
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="new-password">New Password</Label>
@@ -206,11 +256,16 @@ export default function UserProfile() {
                 </div>
                 <Button 
                   type="submit" 
-                  disabled={isChangingPassword}
+                  disabled={isChangingPassword || isRecoveryMode}
                   data-testid="button-change-password"
                 >
                   {isChangingPassword ? "Updating password..." : "Change Password"}
                 </Button>
+                {isRecoveryMode && (
+                  <p className="text-sm text-muted-foreground">
+                    Password change is disabled in recovery mode
+                  </p>
+                )}
               </form>
             </CardContent>
           </Card>
