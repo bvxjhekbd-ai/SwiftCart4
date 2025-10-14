@@ -16,10 +16,11 @@ export default function Support() {
   }, []);
 
   const whatsappNumbers = [
-    { number: "+2349165926869", display: "+234 916 592 6869" },
-    { number: "+2347040987894", display: "+234 704 098 7894" },
-    { number: "+2349034474764", display: "+234 903 447 4764" }
-  ];
+  { number: "+2349165926869", display: "+234 916 592 6869" },
+  { number: "+2347040987894", display: "+234 704 098 7894" },
+  { number: "+2349034474764", display: "+234 903 447 4764" },
+  { number: "+2348119345218", display: "+234 811 934 5218" }
+];
 
   const telegramHandles = [
     { handle: "@SLICK_LOGS_SUPPORT", link: "https://t.me/SLICK_LOGS_SUPPORT" },
