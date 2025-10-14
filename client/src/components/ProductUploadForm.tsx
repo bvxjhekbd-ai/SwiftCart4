@@ -29,6 +29,7 @@ export function ProductUploadForm() {
     accountPassword: "",
     accountEmail: "",
     additionalInfo: "",
+    adminName: "",
   });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +76,7 @@ export function ProductUploadForm() {
         accountPassword: "",
         accountEmail: "",
         additionalInfo: "",
+        adminName: "",
       });
       setImageUrl("");
       setImageFile(null);
@@ -111,6 +113,7 @@ export function ProductUploadForm() {
       accountPassword: formData.accountPassword,
       accountEmail: formData.accountEmail || undefined,
       additionalInfo: formData.additionalInfo || undefined,
+      adminName: formData.adminName || undefined,
       status: "available",
     };
 
@@ -287,6 +290,22 @@ export function ProductUploadForm() {
                 data-testid="input-additional-info"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="adminName">Admin Name (Optional)</Label>
+            <Input
+              id="adminName"
+              placeholder="e.g., oneshotsx, admin1, etc."
+              value={formData.adminName}
+              onChange={(e) =>
+                setFormData({ ...formData, adminName: e.target.value })
+              }
+              data-testid="input-admin-name"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter your name or identifier to track who posted this account
+            </p>
           </div>
 
           <Button 

@@ -52,6 +52,7 @@ export const products = pgTable("products", {
   accountEmail: text("account_email"),
   additionalInfo: text("additional_info"),
   sellerId: varchar("seller_id"),
+  adminName: varchar("admin_name"),
   status: varchar("status").default("available").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });

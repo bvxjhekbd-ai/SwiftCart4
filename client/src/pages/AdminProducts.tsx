@@ -49,6 +49,7 @@ export default function AdminProducts() {
     accountPassword: "",
     accountEmail: "",
     additionalInfo: "",
+    adminName: "",
   });
 
   const { data: products, isLoading } = useQuery<Product[]>({
@@ -127,6 +128,7 @@ export default function AdminProducts() {
       accountPassword: product.accountPassword,
       accountEmail: product.accountEmail || "",
       additionalInfo: product.additionalInfo || "",
+      adminName: product.adminName || "",
     });
     setEditDialogOpen(true);
   };
@@ -144,6 +146,7 @@ export default function AdminProducts() {
       accountPassword: editFormData.accountPassword,
       accountEmail: editFormData.accountEmail || undefined,
       additionalInfo: editFormData.additionalInfo || undefined,
+      adminName: editFormData.adminName || undefined,
     };
 
     editMutation.mutate({ id: productToEdit.id, data: updateData });
@@ -241,6 +244,11 @@ export default function AdminProducts() {
                         {product.additionalInfo && (
                           <div>
                             <span className="font-semibold">Additional Info:</span> {product.additionalInfo}
+                          </div>
+                        )}
+                        {product.adminName && (
+                          <div>
+                            <span className="font-semibold">Posted by:</span> {product.adminName}
                           </div>
                         )}
                       </div>
@@ -369,6 +377,16 @@ export default function AdminProducts() {
                 value={editFormData.additionalInfo}
                 onChange={(e) => setEditFormData({ ...editFormData, additionalInfo: e.target.value })}
                 data-testid="input-edit-info"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-admin-name">Admin Name (Optional)</Label>
+              <Input
+                id="edit-admin-name"
+                value={editFormData.adminName}
+                onChange={(e) => setEditFormData({ ...editFormData, adminName: e.target.value })}
+                placeholder="e.g., oneshotsx, admin1, etc."
+                data-testid="input-edit-admin-name"
               />
             </div>
             <DialogFooter>
