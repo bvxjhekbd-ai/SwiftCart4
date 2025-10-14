@@ -3,6 +3,7 @@ import {
   products,
   purchases,
   transactions,
+  categories,
   type User,
   type UpsertUser,
   type Product,
@@ -11,6 +12,8 @@ import {
   type InsertPurchase,
   type Transaction,
   type InsertTransaction,
+  type Category,
+  type InsertCategory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
@@ -68,6 +71,11 @@ export interface IStorage {
     transaction?: Transaction;
     newBalance?: number;
   }>;
+
+  // Category operations
+  getAllCategories(): Promise<Category[]>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  deleteCategory(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -496,6 +504,20 @@ export class DatabaseStorage implements IStorage {
         newBalance: updatedUser.walletBalance,
       };
     });
+  }
+
+  // Category operations
+  async getAllCategories(): Promise<Category[]> {
+    return await db.select().from(categories).orderBy(categories.name);
+  }
+
+  async createCategory(categoryData: InsertCategory): Promise<Category> {
+    const [category] = await db.insert(categories).values(categoryData).returning();
+    return category;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    await db.delete(categories).where(eq(categories.id, id));
   }
 }
 

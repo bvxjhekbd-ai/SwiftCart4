@@ -14,6 +14,7 @@ import {
 const menuItems = [
   { title: "Dashboard", icon: Home, url: "/admin" },
   { title: "Manage Products", icon: Package, url: "/admin/products" },
+  { title: "Manage Categories", icon: ShoppingBag, url: "/admin/categories" },
   { title: "Manage Users", icon: Users, url: "/admin/users" },
   { title: "All Deposits", icon: Wallet, url: "/admin/deposits" },
   { title: "All Purchases", icon: ShoppingBag, url: "/admin/purchases" },

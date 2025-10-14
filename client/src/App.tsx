@@ -16,6 +16,7 @@ import AdminProducts from "@/pages/AdminProducts";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminDeposits from "@/pages/AdminDeposits";
 import AdminPurchases from "@/pages/AdminPurchases";
+import AdminCategories from "@/pages/AdminCategories";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/admin/users" component={AdminUsers} />
       <Route path="/admin/deposits" component={AdminDeposits} />
       <Route path="/admin/purchases" component={AdminPurchases} />
+      <Route path="/admin/categories" component={AdminCategories} />
       <Route path="/:rest*">
         {() => {
           window.location.href = "/";

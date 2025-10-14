@@ -245,5 +245,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // POST /api/admin?action=create-category
+  if (action === 'create-category' && req.method === 'POST') {
+    try {
+      const { name } = req.body;
+      
+      if (!name || typeof name !== "string") {
+        return res.status(400).json({ message: "Category name is required" });
+      }
+
+      const [category] = await db.insert(schema.categories).values({ name }).returning();
+      return res.status(201).json(category);
+    } catch (error: any) {
+      if (error.code === '23505') { // Unique constraint violation
+        return res.status(400).json({ message: "Category already exists" });
+      }
+      console.error('Error creating category:', error);
+      return res.status(500).json({ message: 'Failed to create category' });
+    }
+  }
+
+  // DELETE /api/admin?action=delete-category&id=xxx
+  if (action === 'delete-category' && req.method === 'DELETE' && id) {
+    try {
+      await db.delete(schema.categories).where(eq(schema.categories.id, id as string));
+      return res.status(200).json({ message: 'Category deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      return res.status(500).json({ message: 'Failed to delete category' });
+    }
+  }
+
   return res.status(400).json({ message: 'Invalid action or method' });
 }

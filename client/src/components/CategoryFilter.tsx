@@ -1,18 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-
-const categories = [
-  "All",
-  "Instagram",
-  "Twitter",
-  "TikTok",
-  "YouTube",
-  "Facebook",
-  "LinkedIn",
-];
+import { useQuery } from "@tanstack/react-query";
+import type { Category } from "@shared/schema";
 
 export function CategoryFilter() {
   const [selected, setSelected] = useState("All");
+  
+  const { data: categoriesData } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
+  
+  const categories = categoriesData 
+    ? ["All", ...categoriesData.map(c => c.name)]
+    : ["All"];
 
   return (
     <div className="border-b">

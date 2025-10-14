@@ -311,6 +311,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Category routes
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const categoriesList = await storage.getAllCategories();
+      res.json(categoriesList);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  app.post("/api/admin/categories", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { name } = req.body;
+      
+      if (!name || typeof name !== "string") {
+        return res.status(400).json({ message: "Category name is required" });
+      }
+
+      const category = await storage.createCategory({ name });
+      res.status(201).json(category);
+    } catch (error: any) {
+      if (error.code === '23505') { // Unique constraint violation
+        return res.status(400).json({ message: "Category already exists" });
+      }
+      console.error("Error creating category:", error);
+      res.status(500).json({ message: "Failed to create category" });
+    }
+  });
+
+  app.delete("/api/admin/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteCategory(req.params.id);
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      res.status(500).json({ message: "Failed to delete category" });
+    }
+  });
+
   // Purchase routes
   app.post("/api/purchases", isAuthenticated, async (req: any, res) => {
     try {
