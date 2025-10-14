@@ -24,14 +24,18 @@ export default function Home() {
       const response = await apiRequest("POST", "/api/purchases", { productId });
       return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast({
         title: "Purchase Successful!",
         description: `Account purchased. New balance: ₦${data.newBalance.toLocaleString()}`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
+      
+      // Instant parallel invalidation for super slick speed
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/products"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/purchases"] })
+      ]);
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
@@ -121,7 +125,7 @@ export default function Home() {
             <p className="text-muted-foreground">No products available</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {(products as any[]).map((product: any) => (
               <ProductCard
                 key={product.id}

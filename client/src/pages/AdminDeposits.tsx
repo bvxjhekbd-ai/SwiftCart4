@@ -96,12 +96,7 @@ export default function AdminDeposits() {
                             <Calendar className="h-3 w-3" />
                             {deposit.createdAt ? new Date(deposit.createdAt).toLocaleString() : 'N/A'}
                           </div>
-                          {deposit.reference && (
-                            <div className="text-xs font-mono text-muted-foreground mt-1">
-                              Ref: {deposit.reference}
-                            </div>
-                          )}
-                          <div className="text-xs font-mono text-muted-foreground mt-1">
+                          <div className="text-xs text-muted-foreground mt-1 font-mono">
                             TX ID: {deposit.id}
                           </div>
                         </div>

@@ -20,7 +20,7 @@ export function CartSheet() {
       const response = await apiRequest("POST", "/api/purchases?action=bulk", { productIds });
       return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const message = data.failedProducts && data.failedProducts.length > 0
         ? `${data.successCount} accounts purchased successfully. ${data.failedProducts.length} were no longer available.`
         : `All ${data.successCount} accounts purchased successfully!`;
@@ -31,9 +31,13 @@ export function CartSheet() {
       });
       
       clearCart();
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
+      
+      // Instant parallel invalidation for super slick speed
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/products"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/auth?action=user"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/purchases"] })
+      ]);
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {

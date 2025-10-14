@@ -70,17 +70,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // GET /api/admin?action=all-deposits
   if (action === 'all-deposits' && req.method === 'GET') {
     try {
-      const [allTransactions, users] = await Promise.all([
-        db.query.transactions.findMany(),
-        db.query.users.findMany()
-      ]);
-      const deposits = allTransactions
-        .filter((t) => t.type === "deposit")
-        .map(deposit => ({
-          ...deposit,
-          user: users.find(u => u.id === deposit.userId) || null
-        }));
-      return res.status(200).json(deposits);
+      const allTransactions = await db.query.transactions.findMany();
+      const deposits = allTransactions.filter((t) => t.type === "deposit");
+      
+      // Enrich deposits with user data
+      const users = await db.query.users.findMany();
+      const enrichedDeposits = deposits.map(d => ({
+        ...d,
+        user: users.find(u => u.id === d.userId) || { email: 'Unknown', firstName: 'Unknown', lastName: '' },
+      }));
+      
+      return res.status(200).json(enrichedDeposits);
     } catch (error) {
       console.error('Error fetching all deposits:', error);
       return res.status(500).json({ message: 'Failed to fetch deposits' });

@@ -63,13 +63,13 @@ export default function PurchaseHistory() {
                     <CardTitle className="mb-2">{purchase.product.title}</CardTitle>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
+                        <span className="font-mono">Purchase ID: {purchase.id}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
                         {purchase.purchasedAt ? new Date(purchase.purchasedAt).toLocaleDateString() : 'N/A'}
                       </div>
                       <Badge variant="secondary">{purchase.product.category}</Badge>
-                    </div>
-                    <div className="text-xs font-mono text-muted-foreground mt-2">
-                      Purchase ID: {purchase.id}
                     </div>
                   </div>
                   <div className="text-right">
