@@ -1,4 +1,4 @@
-import { Search, Store, Wallet, History, ShoppingBag, LogOut, Shield } from "lucide-react";
+import { Search, Store, Wallet, History, ShoppingBag, LogOut, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "./ThemeToggle";
@@ -74,6 +74,13 @@ export function Header({ onPurchase }: HeaderProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild data-testid="menu-item-profile">
+                    <Link href="/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      My Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   {user?.isAdmin && (
                     <>
                       <DropdownMenuItem asChild data-testid="menu-item-admin">

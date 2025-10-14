@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Store } from "lucide-react";
@@ -15,6 +16,9 @@ export default function Auth() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
   const [signInData, setSignInData] = useState({ email: "", password: "" });
   const [signUpData, setSignUpData] = useState({
     email: "",
@@ -115,6 +119,41 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSendingResetEmail(true);
+
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send reset email");
+      }
+
+      toast({
+        title: "Reset email sent!",
+        description: "Check your email for a password reset link",
+      });
+      
+      setIsForgotPasswordOpen(false);
+      setForgotPasswordEmail("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingResetEmail(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -168,6 +207,51 @@ export default function Auth() {
                   <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-signin-submit">
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
+                  
+                  <Dialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full text-sm text-primary hover:underline" 
+                        type="button"
+                        data-testid="button-forgot-password"
+                      >
+                        Forgot password?
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent data-testid="dialog-forgot-password">
+                      <form onSubmit={handleForgotPassword}>
+                        <DialogHeader>
+                          <DialogTitle>Reset your password</DialogTitle>
+                          <DialogDescription>
+                            Enter your email address and we'll send you a link to reset your password.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                          <Label htmlFor="forgot-email">Email</Label>
+                          <Input
+                            id="forgot-email"
+                            type="email"
+                            placeholder="you@example.com"
+                            value={forgotPasswordEmail}
+                            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                            required
+                            data-testid="input-forgot-email"
+                            className="mt-2"
+                          />
+                        </div>
+                        <DialogFooter>
+                          <Button 
+                            type="submit" 
+                            disabled={isSendingResetEmail}
+                            data-testid="button-send-reset-email"
+                          >
+                            {isSendingResetEmail ? "Sending..." : "Send reset link"}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
                 </form>
               </TabsContent>
 

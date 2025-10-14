@@ -68,10 +68,10 @@ export default function AdminPurchases() {
                           <div className="mb-3 flex items-center gap-2">
                             <User className="h-5 w-5 text-primary" />
                             <span className="text-lg font-semibold text-primary">
-                              {purchase.user.email || purchase.user.firstName || 'Unknown User'}
+                              {purchase.user?.email || purchase.user?.firstName || 'Unknown User'}
                             </span>
                           </div>
-                          <CardTitle className="mb-2">{purchase.product.title}</CardTitle>
+                          <CardTitle className="mb-2">{purchase.product?.title || 'Product Deleted'}</CardTitle>
                           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <span className="font-mono">ID: {purchase.id}</span>
@@ -80,7 +80,7 @@ export default function AdminPurchases() {
                               <Calendar className="h-4 w-4" />
                               {purchase.purchasedAt ? new Date(purchase.purchasedAt).toLocaleDateString() : 'N/A'}
                             </div>
-                            <Badge variant="secondary">{purchase.product.category}</Badge>
+                            <Badge variant="secondary">{purchase.product?.category || 'N/A'}</Badge>
                           </div>
                         </div>
                         <div className="text-right">
@@ -89,31 +89,37 @@ export default function AdminPurchases() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2 rounded-lg bg-muted p-4">
-                        <h4 className="font-semibold">Account Credentials:</h4>
-                        <div className="space-y-1 text-sm">
-                          <p>
-                            <span className="text-muted-foreground">Username:</span>{" "}
-                            <span className="font-mono">{purchase.product.accountUsername}</span>
-                          </p>
-                          <p>
-                            <span className="text-muted-foreground">Password:</span>{" "}
-                            <span className="font-mono">{purchase.product.accountPassword}</span>
-                          </p>
-                          {purchase.product.accountEmail && (
+                      {purchase.product ? (
+                        <div className="space-y-2 rounded-lg bg-muted p-4">
+                          <h4 className="font-semibold">Account Credentials:</h4>
+                          <div className="space-y-1 text-sm">
                             <p>
-                              <span className="text-muted-foreground">Email:</span>{" "}
-                              <span className="font-mono">{purchase.product.accountEmail}</span>
+                              <span className="text-muted-foreground">Username:</span>{" "}
+                              <span className="font-mono">{purchase.product.accountUsername}</span>
                             </p>
-                          )}
-                          {purchase.product.additionalInfo && (
-                            <p className="mt-2">
-                              <span className="text-muted-foreground">Additional Info:</span>{" "}
-                              {purchase.product.additionalInfo}
+                            <p>
+                              <span className="text-muted-foreground">Password:</span>{" "}
+                              <span className="font-mono">{purchase.product.accountPassword}</span>
                             </p>
-                          )}
+                            {purchase.product.accountEmail && (
+                              <p>
+                                <span className="text-muted-foreground">Email:</span>{" "}
+                                <span className="font-mono">{purchase.product.accountEmail}</span>
+                              </p>
+                            )}
+                            {purchase.product.additionalInfo && (
+                              <p className="mt-2">
+                                <span className="text-muted-foreground">Additional Info:</span>{" "}
+                                {purchase.product.additionalInfo}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+                          Product information no longer available (product may have been deleted)
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))

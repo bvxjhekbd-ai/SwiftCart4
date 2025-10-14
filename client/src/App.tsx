@@ -7,7 +7,9 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/Landing";
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 import Home from "@/pages/Home";
+import UserProfile from "@/pages/UserProfile";
 import Deposit from "@/pages/Deposit";
 import PurchaseHistory from "@/pages/PurchaseHistory";
 import TransactionHistory from "@/pages/TransactionHistory";
@@ -38,6 +40,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/auth" component={Auth} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route path="/:rest*">
           {() => {
             window.location.href = "/";
@@ -51,6 +54,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/profile" component={UserProfile} />
       <Route path="/deposit" component={Deposit} />
       <Route path="/purchases" component={PurchaseHistory} />
       <Route path="/transactions" component={TransactionHistory} />
