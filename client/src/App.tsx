@@ -19,6 +19,10 @@ import AdminUsers from "@/pages/AdminUsers";
 import AdminDeposits from "@/pages/AdminDeposits";
 import AdminPurchases from "@/pages/AdminPurchases";
 import AdminCategories from "@/pages/AdminCategories";
+import About from "@/pages/About";
+import Privacy from "@/pages/Privacy";
+import GetStarted from "@/pages/GetStarted";
+import Support from "@/pages/Support";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -41,6 +45,10 @@ function Router() {
         <Route path="/" component={Landing} />
         <Route path="/auth" component={Auth} />
         <Route path="/reset-password" component={ResetPassword} />
+        <Route path="/about" component={About} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/get-started" component={GetStarted} />
+        <Route path="/support" component={Support} />
         <Route path="/:rest*">
           {() => {
             window.location.href = "/";
@@ -64,6 +72,10 @@ function Router() {
       <Route path="/admin/deposits" component={AdminDeposits} />
       <Route path="/admin/purchases" component={AdminPurchases} />
       <Route path="/admin/categories" component={AdminCategories} />
+      <Route path="/about" component={About} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/get-started" component={GetStarted} />
+      <Route path="/support" component={Support} />
       <Route path="/:rest*">
         {() => {
           window.location.href = "/";

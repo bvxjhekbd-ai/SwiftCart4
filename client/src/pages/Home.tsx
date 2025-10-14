@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/useCart";
@@ -135,11 +136,7 @@ export default function Home() {
         )}
       </main>
 
-      <footer className="border-t py-8">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground sm:px-6 lg:px-8">
-          <p>&copy; 2025 slick logs marketplace</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

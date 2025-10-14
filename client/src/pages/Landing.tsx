@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Hero } from "@/components/Hero";
 import { TrustSection } from "@/components/TrustSection";
+import { Footer } from "@/components/Footer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Store } from "lucide-react";
 
@@ -37,11 +38,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="border-t py-8">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground sm:px-6 lg:px-8">
-          <p>&copy; 2025 slick logs marketplace</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
