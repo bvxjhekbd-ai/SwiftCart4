@@ -68,6 +68,9 @@ export default function PurchaseHistory() {
                       </div>
                       <Badge variant="secondary">{purchase.product.category}</Badge>
                     </div>
+                    <div className="text-xs font-mono text-muted-foreground mt-2">
+                      Purchase ID: {purchase.id}
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold">₦{purchase.amount.toLocaleString()}</p>

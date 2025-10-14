@@ -1,32 +1,43 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    "Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment secrets."
+const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
+
+if (!hasSupabaseConfig) {
+  console.warn(
+    "Missing Supabase environment variables. Authentication may not work properly. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY."
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
+export const supabase = hasSupabaseConfig 
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : createClient("https://placeholder.supabase.co", "placeholder-key");
 
 // Helper to get auth headers for API requests
-export function getAuthHeaders() {
-  return supabase.auth.getSession().then(({ data: { session } }) => {
+export async function getAuthHeaders() {
+  if (!hasSupabaseConfig) {
+    return {};
+  }
+  
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
       return {
         Authorization: `Bearer ${session.access_token}`,
       };
     }
-    return {};
-  });
+  } catch (error) {
+    console.error("Error getting auth session:", error);
+  }
+  return {};
 }
 
 // Helper to sign out

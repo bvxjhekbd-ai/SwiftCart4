@@ -66,16 +66,21 @@ export default function AdminPurchases() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <CardTitle className="mb-2">{purchase.product.title}</CardTitle>
+                          <div className="mb-2 flex items-center gap-2">
+                            <User className="h-5 w-5 text-primary" />
+                            <span className="text-lg font-semibold text-primary">
+                              {purchase.user.email || purchase.user.firstName || 'Unknown User'}
+                            </span>
+                          </div>
                           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
-                              <User className="h-4 w-4" />
-                              {purchase.user.email || purchase.user.firstName || 'Unknown User'}
-                            </div>
-                            <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
-                              {purchase.purchasedAt ? new Date(purchase.purchasedAt).toLocaleDateString() : 'N/A'}
+                              {purchase.purchasedAt ? new Date(purchase.purchasedAt).toLocaleString() : 'N/A'}
                             </div>
                             <Badge variant="secondary">{purchase.product.category}</Badge>
+                          </div>
+                          <div className="text-xs font-mono text-muted-foreground mt-2">
+                            Purchase ID: {purchase.id}
                           </div>
                         </div>
                         <div className="text-right">
