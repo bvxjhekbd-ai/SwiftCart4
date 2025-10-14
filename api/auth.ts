@@ -197,5 +197,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // POST /api/auth?action=update-password
+  if (action === 'update-password' && req.method === 'POST') {
+    try {
+      const supabaseUser = await verifyToken(req);
+      const { newPassword } = req.body;
+
+      if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      }
+
+      const { supabase } = getSupabaseClients();
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        return res.status(400).json({ message: error.message });
+      }
+
+      return res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+      console.error('Update password error:', error);
+      return res.status(500).json({ message: 'Failed to update password' });
+    }
+  }
+
+  // POST /api/auth?action=reset-password
+  if (action === 'reset-password' && req.method === 'POST') {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+
+      const { supabase } = getSupabaseClients();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://app.fogopulse.com/reset-password',
+      });
+
+      if (error) {
+        return res.status(400).json({ message: error.message });
+      }
+
+      return res.status(200).json({ message: 'Password reset email sent' });
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return res.status(500).json({ message: 'Failed to send reset email' });
+    }
+  }
+
   return res.status(400).json({ message: 'Invalid action or method' });
 }

@@ -51,10 +51,10 @@ export default function UserProfile() {
         headers["Authorization"] = authHeaders.Authorization;
       }
 
-      const response = await fetch("/api/auth/update-password", {
+      const response = await fetch("/api/auth?action=update-password", {
         method: "POST",
         headers,
-        body: JSON.stringify({ password: newPassword }),
+        body: JSON.stringify({ newPassword }),
       });
 
       const data = await response.json();
