@@ -130,7 +130,7 @@ export default function UserProfile() {
             </Link>
             <div className="flex items-center gap-2">
               <Store className="h-6 w-6 text-primary" />
-              <span className="font-bold">Digital Market</span>
+              <span className="font-bold">slick logs marketplace</span>
             </div>
           </div>
           <ThemeToggle />

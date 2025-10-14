@@ -30,7 +30,7 @@ export function Header({ onPurchase }: HeaderProps) {
           <div className="flex items-center gap-2 cursor-pointer">
             <Store className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block">
-              Digital Market
+              slick logs marketplace
             </span>
           </div>
         </Link>

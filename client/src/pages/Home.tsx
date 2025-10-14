@@ -137,7 +137,7 @@ export default function Home() {
 
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground sm:px-6 lg:px-8">
-          <p>&copy; 2024 Digital Market. All rights reserved.</p>
+          <p>&copy; 2025 slick logs marketplace</p>
         </div>
       </footer>
     </div>

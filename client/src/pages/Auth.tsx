@@ -161,7 +161,7 @@ export default function Auth() {
         <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             <Store className="h-6 w-6 text-primary" />
-            <span className="font-bold">Digital Market</span>
+            <span className="font-bold">slick logs marketplace</span>
           </div>
           <ThemeToggle />
         </div>
